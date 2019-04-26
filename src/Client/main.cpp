@@ -1,12 +1,16 @@
-#include <QCoreApplication>
-#include <iostream>
-
-using namespace std;
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-    cout << "hello world" << endl;
-    return a.exec();
+    QGuiApplication app(argc, argv);
+
+    QQmlApplicationEngine engine;
+    engine.load(QUrl(QStringLiteral("qrc:/Design/main.qml")));
+    if (engine.rootObjects().isEmpty())
+        return -1;
+
+    return app.exec();
 }
