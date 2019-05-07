@@ -5,5 +5,6 @@
         <file>Design/ClientsList.qml</file>
         <file>Design/ClientsModel.qml</file>
         <file>Design/CallButton.qml</file>
+        <file>Design/Authotization.qml</file>
     </qresource>
 </RCC>

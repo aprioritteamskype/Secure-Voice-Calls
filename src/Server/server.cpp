@@ -1,9 +1,13 @@
 #include "server.h"
+#include <QUrl>
 
-grpc::Status secure_voice_call::Server::SayHello(grpc::ServerContext *context, const helloworld::HelloRequest *request, helloworld::HelloReply *response)
+grpc::Status secure_voice_call::Server::Authorization(grpc::ServerContext *context, const AuthorizationRequest *request, AuthorizationResponse *response)
 {
-    std::cout << "SERVER__ request->name(): " << request->name() << std::endl;
-    response->set_message("hello world!");
-    std::cout << "SERVER__ set response->message() " << response->message() << std::endl;
+    std::cout << context->peer() << std::endl;
+    std::cout << request->name() << std::endl;
+
+    response->set_issuccessful(m_clientOnline.insert(
+                                   std::pair<std::string,std::string>(request->name(),context->peer()))
+                               .second);
     return Status::OK;
 }

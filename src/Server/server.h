@@ -2,26 +2,27 @@
 #define SERVER_H
 #include <grpcpp/grpcpp.h>
 #include <iostream>
-#include "helloworld.grpc.pb.h"
-
+#include <map>
+#include "client-server.grpc.pb.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
 
-
-using helloworld::HelloReply;
-using helloworld::HelloRequest;
-using helloworld::Greeter;
+using secure_voice_call::Greeter;
+using secure_voice_call::AuthorizationRequest;
+using secure_voice_call::AuthorizationResponse;
 
 namespace secure_voice_call {
 class Server final : public Greeter::Service
 {
 public:
-    virtual Status SayHello(ServerContext* context,
-                            const HelloRequest* request,
-                            HelloReply* response) override;
+    virtual Status Authorization(ServerContext* context,
+                                 const AuthorizationRequest* request,
+                                 AuthorizationResponse* response) override;
+    private:
+    std::map<std::string, std::string> m_clientOnline;
 };
 }
 

@@ -37,14 +37,14 @@ set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++_unsecure)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 
 # Proto file
-get_filename_component(hw_proto "helloworld.proto" ABSOLUTE)
+get_filename_component(hw_proto "../Common/client-server.proto" ABSOLUTE)
 get_filename_component(hw_proto_path "${hw_proto}" PATH)
 
 # Generated sources
-set(hw_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/helloworld.pb.cc")
-set(hw_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/helloworld.pb.h")
-set(hw_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/helloworld.grpc.pb.cc")
-set(hw_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/helloworld.grpc.pb.h")
+set(hw_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/client-server.pb.cc")
+set(hw_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/client-server.pb.h")
+set(hw_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/client-server.grpc.pb.cc")
+set(hw_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/client-server.grpc.pb.h")
 add_custom_command(
       OUTPUT "${hw_proto_srcs}" "${hw_proto_hdrs}" "${hw_grpc_srcs}" "${hw_grpc_hdrs}"
       COMMAND ${_PROTOBUF_PROTOC}
@@ -55,11 +55,12 @@ add_custom_command(
         "${hw_proto}"
       DEPENDS "${hw_proto}")
 
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Headers")
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-set(CPPSOURCES "main.cpp" "client.cpp")
-set(CPPHEADERS "client.h")
+set(CPPSOURCES "Sources/main.cpp" "Sources/client.cpp" "Sources/qmlclientstate.cpp")
+set(CPPHEADERS "Headers/client.h" "Headers/qmlclientstate.h")
 
 add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS} "qml.qrc" ${hw_proto_srcs} ${hw_grpc_srcs})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
