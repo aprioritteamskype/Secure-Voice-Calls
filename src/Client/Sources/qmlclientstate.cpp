@@ -1,5 +1,6 @@
 #include "qmlclientstate.h"
 
+using namespace secure_voice_call;
 QMLClientState::QMLClientState(QObject *parent) : QObject(parent)
 {
 

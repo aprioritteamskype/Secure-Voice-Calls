@@ -14,10 +14,14 @@ Window {
             id: listViwer
             x: 20
             y: 20
+            model: onlineClientsModel
             radius: 20
             width: parent.width / 3
             height: parent.height - 50
             visible: root.state == "online"
+            Component.onCompleted: {
+                console.log("nevatest: "+ onlineClientsModel.rowCount())
+            }
         }
         Text {
             id: usersOnlineLabel

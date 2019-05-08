@@ -2,7 +2,7 @@ import QtQuick 2.0
 
 Rectangle {
     id: root
-
+    property var model: null
     width: 300; height: 400
 
     Component {
@@ -26,7 +26,7 @@ Rectangle {
 
                 Row{
                     Text {
-                        text:  name
+                        text: model.username
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         height: 20
@@ -40,7 +40,7 @@ Rectangle {
                             anchors.fill: parent
                             onClicked: {
                                 //#TODO call
-                                console.log("Call " + name)
+                                console.log("Call " + username)
                             }
                         }
                     }
@@ -50,11 +50,12 @@ Rectangle {
     }
     ListView {
         id: view
-        anchors.topMargin: 20
 
-        anchors { fill: parent; margins: 2 }
+        anchors { centerIn: parent; topMargin: 20; margins: 2 }
+        implicitHeight: parent.height - 100
+        implicitWidth: parent.width - 20
 
-        model: ClientsModel {}
+        model: root.model
         delegate: dragDelegate
 
         spacing: 4

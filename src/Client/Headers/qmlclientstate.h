@@ -4,6 +4,7 @@
 #include <QObject>
 
 //Singleton
+namespace secure_voice_call{
 class QMLClientState : public QObject
 {
     Q_OBJECT
@@ -23,9 +24,9 @@ public:
     ClientStates getState() const { return m_clientState; }
 
     static QMLClientState& getInstance() {
-            static QMLClientState  instance;
-            return instance;
-        }
+        static QMLClientState  instance;
+        return instance;
+    }
 
 public slots:
     void setState(ClientStates clientState);
@@ -36,5 +37,6 @@ signals:
 private:
     ClientStates m_clientState = ClientStates::Authorization;
 };
+}
 
 #endif // QMLCLIENTSTATE_H

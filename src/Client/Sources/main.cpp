@@ -5,8 +5,9 @@
 
 #include "client.h"
 #include "qmlclientstate.h"
+#include "qmlclientsonlinemodel.h"
 
-void runCLient();
+void runCLient(secure_voice_call::QMLClientsOnlineModel &model);
 
 int main(int argc, char *argv[])
 {
@@ -14,23 +15,24 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    secure_voice_call::QMLClientsOnlineModel model;
     QQmlApplicationEngine engine;
-    qmlRegisterUncreatableType<QMLClientState>("com.securevoivecaller", 1, 0, "QMLClientState",
+    qmlRegisterUncreatableType<secure_voice_call::QMLClientState>("com.securevoivecaller", 1, 0, "QMLClientState",
                                                "Uncreatable type QMLClientState");
-    engine.rootContext()->setContextProperty("globClientState", &QMLClientState::getInstance());
-
+    engine.rootContext()->setContextProperty("globClientState", &secure_voice_call::QMLClientState::getInstance());
+    engine.rootContext()->setContextProperty("onlineClientsModel", &model);
 
     engine.load(QUrl(QStringLiteral("qrc:/Design/main.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
 
-    runCLient();
+    runCLient(model);
 //    std::thread clientThread(runCLient);
 //    clientThread.join();
     return app.exec();
 }
 
-void runCLient(){
+void runCLient(secure_voice_call::QMLClientsOnlineModel &model){
     std::string address("0.0.0.0:5000");
     secure_voice_call::Client client(
                 grpc::CreateChannel(
@@ -40,9 +42,12 @@ void runCLient(){
                 );
 
     bool isAuthorizationSuccess = false;
-    client.sendAuthorizationRequest("some name", isAuthorizationSuccess);
+    std::vector<std::string> clients;
+    client.sendAuthorizationRequest("some name", isAuthorizationSuccess, clients);
+
     if (isAuthorizationSuccess){
-        QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
+        model.setCLients(clients);
+        secure_voice_call::QMLClientState::getInstance().setState(secure_voice_call::QMLClientState::ClientStates::Online);
     }
 
     std::cout << "isAuthorizationSuccess: " << isAuthorizationSuccess << std::endl;

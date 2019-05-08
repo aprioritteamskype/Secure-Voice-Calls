@@ -59,8 +59,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Headers")
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-set(CPPSOURCES "Sources/main.cpp" "Sources/client.cpp" "Sources/qmlclientstate.cpp")
-set(CPPHEADERS "Headers/client.h" "Headers/qmlclientstate.h")
+set(CPPSOURCES "Sources/main.cpp" "Sources/client.cpp" "Sources/qmlclientstate.cpp" "Sources/qmlclientsonlinemodel.cpp")
+set(CPPHEADERS "Headers/client.h" "Headers/qmlclientstate.h" "Headers/qmlclientsonlinemodel.h")
 
 add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS} "qml.qrc" ${hw_proto_srcs} ${hw_grpc_srcs})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})

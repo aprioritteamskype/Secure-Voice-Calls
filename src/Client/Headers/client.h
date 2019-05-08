@@ -17,7 +17,7 @@ class Client {
 public:
     Client(std::shared_ptr<Channel> channel) : mstub(Greeter::NewStub(channel)) {}
 
-    Status sendAuthorizationRequest(const std::string &name, bool &authorizationSuccesfull);
+    Status sendAuthorizationRequest(const std::string &name, bool &authorizationSuccesfull, std::vector<std::string>& clients);
 
 private:
     std::unique_ptr<Greeter::Stub> mstub;
