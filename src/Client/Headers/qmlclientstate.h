@@ -34,6 +34,7 @@ public slots:
 signals:
     void stateChanged(ClientStates clientState);
     void tryAuthorizate(QString str);
+    void refreshClientList();
 private:
     ClientStates m_clientState = ClientStates::Authorization;
 };

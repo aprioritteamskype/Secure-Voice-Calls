@@ -20,6 +20,14 @@ Window {
             height: parent.height - 50
             visible: root.state == "online"
         }
+        RefreshButton {
+            width: 100
+            height: 70
+            anchors.top: root.top
+            anchors.horizontalCenter: root.horizontalCenter
+            visible: root.state == "online"
+        }
+
         Text {
             id: usersOnlineLabel
             text: "users online"

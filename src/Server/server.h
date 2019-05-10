@@ -9,6 +9,7 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
+using grpc::ServerReaderWriter;
 
 using secure_voice_call::Greeter;
 using secure_voice_call::AuthorizationRequest;
@@ -17,12 +18,14 @@ using secure_voice_call::AuthorizationResponse;
 namespace secure_voice_call {
 class Server final : public Greeter::Service
 {
-public:
-    virtual Status Authorization(ServerContext* context,
-                                 const AuthorizationRequest* request,
-                                 AuthorizationResponse* response) override;
-    private:
+private:
     std::map<std::string, std::string> m_clientOnline;
+
+public:
+    void addClientsToResponse(AuthorizationResponse &response);
+    // Service interface
+public:
+    Status Authorization(ServerContext *context, ServerReaderWriter<AuthorizationResponse, AuthorizationRequest> *stream) override;
 };
 }
 
