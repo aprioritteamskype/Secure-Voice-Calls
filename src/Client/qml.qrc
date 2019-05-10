@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>Design/main.qml</file>
-        <file>Design/AuthorizationItem.qml</file>
+        <file>Design/Background.qml</file>
         <file>Design/ClientsList.qml</file>
         <file>Design/CallButton.qml</file>
         <file>Design/Authotization.qml</file>

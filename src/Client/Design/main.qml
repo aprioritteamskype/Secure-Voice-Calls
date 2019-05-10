@@ -8,7 +8,7 @@ Window {
     height: 480
     title: qsTr("Secure Voice Caller")
 
-    AuthorizationItem {
+    Background {
         id: root
         ClientsList {
             id: listViwer
@@ -19,9 +19,6 @@ Window {
             width: parent.width / 3
             height: parent.height - 50
             visible: root.state == "online"
-            Component.onCompleted: {
-                console.log("nevatest: "+ onlineClientsModel.rowCount())
-            }
         }
         Text {
             id: usersOnlineLabel

@@ -36,13 +36,6 @@ Rectangle {
                     CallButton{
                         height: 20
                         width: 40
-                        MouseArea{
-                            anchors.fill: parent
-                            onClicked: {
-                                //#TODO call
-                                console.log("Call " + username)
-                            }
-                        }
                     }
                 }
             }

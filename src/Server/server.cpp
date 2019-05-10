@@ -9,10 +9,9 @@ grpc::Status secure_voice_call::Server::Authorization(grpc::ServerContext *conte
                                    std::pair<std::string,std::string>(request->name(),context->peer()))
                                .second);
     if (response->issuccessful()){
-        for(int i =0; i< 10; ++i){
-            std::string str = std::string("Vasya ") + std::to_string(i);
-            response->add_user_names(str);
+        for (const auto &element : m_clientOnline){
+            response->add_user_names(element.first);
         }
-    }
-    return Status::OK;
+        return Status::OK;
+    }else return  Status::CANCELLED;
 }

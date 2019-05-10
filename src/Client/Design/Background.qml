@@ -1,6 +1,7 @@
 import QtQuick 2.0
 
 Rectangle {
+    color: "#b9e2c7"
     anchors.fill: parent
     gradient: Gradient {
         GradientStop {

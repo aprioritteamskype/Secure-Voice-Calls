@@ -3,6 +3,7 @@
 #include <grpcpp/grpcpp.h>
 #include <iostream>
 #include "client-server.grpc.pb.h"
+#include "qmlclientsonlinemodel.h"
 
 using secure_voice_call::Greeter;
 using secure_voice_call::AuthorizationRequest;
@@ -13,13 +14,15 @@ using grpc::ClientContext;
 using grpc::Status;
 
 namespace secure_voice_call {
-class Client {
+class Client : public QObject {
 public:
-    Client(std::shared_ptr<Channel> channel) : mstub(Greeter::NewStub(channel)) {}
+    Client(secure_voice_call::QMLClientsOnlineModel &model);// : mstub(Greeter::NewStub(channel)) {}
 
-    Status sendAuthorizationRequest(const std::string &name, bool &authorizationSuccesfull, std::vector<std::string>& clients);
+   grpc::Status sendAuthorizationRequest(const QString &name);
 
 private:
+    secure_voice_call::QMLClientsOnlineModel *mModel;
+    std::string mServerAddress;
     std::unique_ptr<Greeter::Stub> mstub;
 };
 }

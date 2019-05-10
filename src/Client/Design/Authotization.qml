@@ -1,10 +1,9 @@
-import QtQuick 2.0
+import QtQuick 2.12
 
 Rectangle {
     radius: 70
     border.width: 6
     border.color: "#7f1d8b"
-
 
     Column {
         id: column
@@ -18,7 +17,6 @@ Rectangle {
             width: parent.width
             spacing: 10
             Text {
-                id: labelEnterName
                 height: 30
                 text: qsTr("Enter name: ")
                 font.pixelSize: 12
@@ -27,20 +25,24 @@ Rectangle {
             }
 
             Rectangle {
-                border.color: "blue"
+                id: enterNameDelegate
+                property string enteredText: enterName.text
+                border.color: "black"
                 border.width: 2
-
-                width: enterName.width
+                width: enterName.width + 10
                 height: enterName.height
-                TextEdit {
+                TextInput {
                     id: enterName
-                    width: 80
+                    width: 100
+                    maximumLength: 70
                     height: 30
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                    focus: true
+                    horizontalAlignment: TextInput.AlignHCenter
+                    verticalAlignment: TextInput.AlignVCenter
                     color: "red"
                     text: ""
                     font.pixelSize: 12
+                    layer.enabled: true
                 }
             }
 
@@ -58,6 +60,9 @@ Rectangle {
                     id: buttonAuthorizateMouseArea
                     anchors.fill: parent
                     hoverEnabled: true
+                    onClicked: {
+                        globClientState.tryAuthorizate(enterNameDelegate.enteredText);
+                    }
                 }
                 Text {
                     id: authorizateText
@@ -75,16 +80,15 @@ Rectangle {
             width: parent.width
 
             Text {
-                id: element1
-                text: qsTr("Text")
+                text: qsTr("Status:")
                 font.pixelSize: 12
             }
 
-            TextEdit {
-                id: textEdit1
+            Text {
+                id: statusLable
                 width: 80
                 height: 20
-                text: qsTr("Text Edit")
+                text: qsTr("")
                 font.pixelSize: 12
             }
         }

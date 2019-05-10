@@ -13,13 +13,23 @@ Rectangle {
         }
     }
     color: "#e85815"
-    border.color: "blue"
+    border.color: mouseArea.containsMouse ? "lime" : "blue"
     border.width: 2
+
     Text {
         id: name
         text: qsTr("Call")
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         anchors.fill: parent
+    }
+
+    MouseArea{
+        id: mouseArea
+        anchors.fill: parent
+        onClicked: {
+            //FIXME
+        }
+        hoverEnabled: true
     }
 }
