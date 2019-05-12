@@ -13,14 +13,14 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    secure_voice_call::QMLClientsOnlineModel model;
-    secure_voice_call::Client client(model);
+    secure_voice_call::QMLClientsOnlineModel *model = new secure_voice_call::QMLClientsOnlineModel();
+    secure_voice_call::Client *client = new secure_voice_call::Client(*model);
 
     QQmlApplicationEngine engine;
     qmlRegisterUncreatableType<secure_voice_call::QMLClientState>("com.securevoivecaller", 1, 0, "QMLClientState",
                                                "Uncreatable type QMLClientState");
     engine.rootContext()->setContextProperty("globClientState", &secure_voice_call::QMLClientState::getInstance());
-    engine.rootContext()->setContextProperty("onlineClientsModel", &model);
+    engine.rootContext()->setContextProperty("onlineClientsModel", model);
 
     engine.load(QUrl(QStringLiteral("qrc:/Design/main.qml")));
     if (engine.rootObjects().isEmpty())

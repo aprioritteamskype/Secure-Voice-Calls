@@ -2,17 +2,25 @@ syntax = "proto3";
 
 package secure_voice_call;
 
-// The greeting service definition.
 service Greeter {
   rpc Authorization (stream AuthorizationRequest) returns (stream AuthorizationResponse) {}
 }
 
+enum TypeMessage {
+  Authorization = 0;
+  GetClientsOnline = 1;
+  GetIpByUserName = 2;
+}
 
 message AuthorizationRequest {
-  string name = 1;
+  TypeMessage requestType = 1;
+  string name = 2;
+  string getIpByUserName = 3;
 }
 
 message AuthorizationResponse {
-  bool isSuccessful = 1;
-  repeated string user_names = 2;
+  TypeMessage responseType = 1;
+  bool isSuccessful = 2;
+  repeated string user_names = 3;
+  string userIp = 4;
 }

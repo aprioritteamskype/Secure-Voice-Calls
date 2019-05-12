@@ -28,7 +28,7 @@ Rectangle {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            //FIXME
+            globClientState.getUserIdByName(model.username)
         }
         hoverEnabled: true
     }

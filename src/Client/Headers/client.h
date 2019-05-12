@@ -22,12 +22,14 @@ public:
    grpc::Status sendAuthorizationRequest(const QString &name);
    void addClientToModel(const AuthorizationResponse &response) const;
    void sendClientsOnlineRequest();
+   void sendIdByUserNameRequest(const QString &username);
 private:
     secure_voice_call::QMLClientsOnlineModel *mModel;
     std::string mServerAddress;
     std::unique_ptr<Greeter::Stub> mstub;
     std::unique_ptr<ClientReaderWriter<AuthorizationRequest, AuthorizationResponse>> mstream;
-    AuthorizationRequest mEmptyRequest;
+    AuthorizationRequest mClientsOnlineRequest; //clientsonline request
+    AuthorizationRequest mGetIpByNameRequest;
     std::string mname;
     std::unique_ptr<ClientContext> mContext;
     bool mHasConnection = false;

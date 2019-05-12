@@ -3,7 +3,6 @@
 secure_voice_call::QMLClientsOnlineModel::QMLClientsOnlineModel(QObject *parent)
     : QAbstractListModel(parent)
 {
-    //FIXME
     beginResetModel();
     for (int i = 0; i < 10; ++i) {
         mClients.push_back(std::to_string(i)+ " user");
@@ -33,14 +32,7 @@ QVariant secure_voice_call::QMLClientsOnlineModel::data(const QModelIndex &index
         return QString::fromStdString(mClients[n]);
     }else {
         return  QVariant();
-}
-//    switch (role) {
-//    case Roles::NameRole:
-//        return QString::fromStdString(mClients[index.row()]);
-//        //another roles
-//    default:
-//        return QVariant();
-//    }
+    }
 }
 
 QHash<int, QByteArray> secure_voice_call::QMLClientsOnlineModel::roleNames() const
