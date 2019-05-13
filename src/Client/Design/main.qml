@@ -37,7 +37,7 @@ Window {
             visible: root.state == "online"
         }
 
-        Authotization {
+        Authorization {
             anchors.centerIn: parent
             width: parent.width / 2
             height: parent.height / 2

@@ -1,5 +1,4 @@
-#ifndef QMLCLIENTSONLINEMODEL_H
-#define QMLCLIENTSONLINEMODEL_H
+#pragma once
 
 #include <QAbstractItemModel>
 
@@ -26,4 +25,3 @@ private:
     std::vector<std::string> mClients;
 };
 }
-#endif // QMLCLIENTSONLINEMODEL_H

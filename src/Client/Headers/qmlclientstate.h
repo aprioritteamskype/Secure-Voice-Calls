@@ -1,6 +1,4 @@
-#ifndef QMLCLIENTSTATE_H
-#define QMLCLIENTSTATE_H
-
+#pragma once
 #include <QObject>
 
 //Singleton
@@ -40,5 +38,3 @@ private:
     ClientStates m_clientState = ClientStates::Authorization;
 };
 }
-
-#endif // QMLCLIENTSTATE_H

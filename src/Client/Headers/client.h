@@ -1,5 +1,4 @@
-#ifndef CLIENT_H
-#define CLIENT_H
+#pragma once
 #include <grpcpp/grpcpp.h>
 #include <iostream>
 #include "client-server.grpc.pb.h"
@@ -35,5 +34,3 @@ private:
     bool mHasConnection = false;
 };
 }
-
-#endif // CLIENT_H

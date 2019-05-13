@@ -1,5 +1,4 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 class QString;
 class QRegExp;
@@ -10,5 +9,3 @@ namespace secure_voice_call {
     void changeHost(QString &ip, const QString &host);
     void changePort(QString &ip, const unsigned int port);
 }
-
-#endif // UTILS_H

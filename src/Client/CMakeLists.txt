@@ -60,9 +60,9 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Headers")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 set(CPPSOURCES "Sources/main.cpp" "Sources/client.cpp" "Sources/qmlclientstate.cpp"
-    "Sources/qmlclientsonlinemodel.cpp" "Sources/utils.cpp")
+    "Sources/qmlclientsonlinemodel.cpp" "Sources/utils.cpp" "Sources/peertopeer.cpp")
 set(CPPHEADERS "Headers/client.h" "Headers/qmlclientstate.h"
-    "Headers/qmlclientsonlinemodel.h" "Headers/utils.h")
+    "Headers/qmlclientsonlinemodel.h" "Headers/utils.h" "Headers/peertopeer.h")
 
 add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS} "qml.qrc" ${hw_proto_srcs} ${hw_grpc_srcs})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})

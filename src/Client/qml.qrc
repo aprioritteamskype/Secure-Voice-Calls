@@ -4,7 +4,7 @@
         <file>Design/Background.qml</file>
         <file>Design/ClientsList.qml</file>
         <file>Design/CallButton.qml</file>
-        <file>Design/Authotization.qml</file>
+        <file>Design/Authorization.qml</file>
         <file>Design/RefreshButton.qml</file>
     </qresource>
 </RCC>
