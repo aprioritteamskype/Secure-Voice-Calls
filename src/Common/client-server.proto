@@ -7,7 +7,7 @@ service Greeter {
 }
 
 service CallGreeter {
-  rpc HandShake (CallRequest) returns (stream CallResponse) {}
+  rpc HandShake (stream CallRequest) returns (stream CallResponse) {}
 }
 
 enum TypeMessage {
@@ -31,6 +31,7 @@ message AuthorizationResponse {
 
 message CallRequest {
   string callerName = 1;
+  int32 audiobytes = 2;
 }
 
 message CallResponse {
