@@ -6,6 +6,10 @@ service Greeter {
   rpc Authorization (stream AuthorizationRequest) returns (stream AuthorizationResponse) {}
 }
 
+service CallGreeter {
+  rpc HandShake (stream CallRequest) returns (stream CallResponse) {}
+}
+
 enum TypeMessage {
   Authorization = 0;
   GetClientsOnline = 1;
@@ -23,4 +27,14 @@ message AuthorizationResponse {
   bool isSuccessful = 2;
   repeated string user_names = 3;
   string userIp = 4;
+}
+
+message CallRequest {
+  string callerName = 1;
+  int32 audiobytes = 2;
+}
+
+message CallResponse {
+  bool isSuccessful = 1;
+  int32 audiobytes = 2;
 }

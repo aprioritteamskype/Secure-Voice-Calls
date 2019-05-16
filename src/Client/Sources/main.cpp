@@ -6,12 +6,22 @@
 #include "client.h"
 #include "qmlclientstate.h"
 #include "qmlclientsonlinemodel.h"
+#include "peertopeer.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication app(argc, argv);
+    secure_voice_call::PeerToPeer *peerToPeer = new secure_voice_call::PeerToPeer;
+
+//    std::thread t([peerToPeer](){
+//        peerToPeer->runServer();
+//    });
+
+    std::thread t2([peerToPeer](){
+        peerToPeer->sendCallRequest("0.0.0.0:5001", "ivan");
+    });
 
     secure_voice_call::QMLClientsOnlineModel *model = new secure_voice_call::QMLClientsOnlineModel();
     secure_voice_call::Client *client = new secure_voice_call::Client(*model);

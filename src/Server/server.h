@@ -1,5 +1,5 @@
-#ifndef SERVER_H
-#define SERVER_H
+#pragma once
+
 #include <grpcpp/grpcpp.h>
 #include <iostream>
 #include <map>
@@ -28,6 +28,3 @@ public:
     Status Authorization(ServerContext *context, ServerReaderWriter<AuthorizationResponse, AuthorizationRequest> *stream) override;
 };
 }
-
-
-#endif // SERVER_H

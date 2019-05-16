@@ -1,5 +1,6 @@
 #include "client.h"
 #include "qmlclientstate.h"
+#include "utils.h"
 #include <iostream> //FIXME extra include
 
 secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model)
@@ -31,7 +32,7 @@ grpc::Status secure_voice_call::Client::sendAuthorizationRequest(const QString &
     mname = name.toStdString();
     request.set_name(mname);
     std::unique_ptr<ClientContext> tmpPtr(new ClientContext);
-    mContext = std::move(tmpPtr);
+    std::swap(mContext, tmpPtr); //you cannot reuse this object between calls
 
     AuthorizationResponse response;
     mstream = mstub->Authorization(mContext.get());
@@ -127,5 +128,7 @@ void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
         return;
     }
     std::cout << response.userip() << std::endl;
+    QString str = QString::fromStdString(response.userip());
+    secure_voice_call::changePort(str, 2000);
+    std::cout << str.toStdString() << std::endl;
 }
-
