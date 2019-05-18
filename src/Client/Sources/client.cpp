@@ -1,14 +1,17 @@
 #include "client.h"
+#include <thread>
 #include "qmlclientstate.h"
 #include "utils.h"
 #include <iostream> //FIXME extra include
 
 secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model)
     : QObject (nullptr),
-      mModel(&model),
-      mServerAddress("0.0.0.0:5000"){
+      mServerAddress("0.0.0.0:5000"),
+      mModel(&model)
+{
     mClientsOnlineRequest.set_requesttype(secure_voice_call::TypeMessage::GetClientsOnline);
     mGetIpByNameRequest.set_requesttype(secure_voice_call::TypeMessage::GetIpByUserName);
+
     std::shared_ptr<Channel> channel = grpc::CreateChannel(
                 mServerAddress,
                 grpc::InsecureChannelCredentials()
@@ -16,7 +19,7 @@ secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &mode
     mstub = Greeter::NewStub(channel);
 
     using secure_voice_call::QMLClientState;
-    connect(&QMLClientState::getInstance(), &QMLClientState::tryAuthorizate,
+    connect(&QMLClientState::getInstance(), &QMLClientState::tryAuthorizate, //TODO replace connections to object calls in qml
             this, &Client::sendAuthorizationRequest);
     connect(&QMLClientState::getInstance(), &QMLClientState::refreshClientList,
             this, &Client::sendClientsOnlineRequest);
@@ -62,9 +65,9 @@ grpc::Status secure_voice_call::Client::sendAuthorizationRequest(const QString &
 void secure_voice_call::Client::addClientToModel(const secure_voice_call::AuthorizationResponse &response) const
 {
     std::vector<std::string> clients;
-    for(int i = 0, size = response.user_names_size(); i < size; ++i){
-        if(response.user_names(i) != mname){
-            clients.push_back(response.user_names(i));
+    for(int i = 0, size = response.usernames_size(); i < size; ++i){
+        if(response.usernames(i) != mname){
+            clients.push_back(response.usernames(i));
         }
     }
     mModel->setCLients(clients);
@@ -102,9 +105,8 @@ void secure_voice_call::Client::sendClientsOnlineRequest()
 
 void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
 {
-    //FIXME extra code
-    std::cout << "void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username) "
-              << username.toStdString() <<  std::endl;
+    std::cout << "setState(QMLClientState::ClientStates::OutgoingCall) " << std::endl;
+    QMLClientState::getInstance().setState(QMLClientState::ClientStates::OutgoingCall);
     if(!mHasConnection)
     {
         QMLClientState::getInstance().setState(QMLClientState::ClientStates::Authorization);
@@ -127,8 +129,10 @@ void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
         QMLClientState::getInstance().setState(QMLClientState::ClientStates::Authorization);
         return;
     }
-    std::cout << response.userip() << std::endl;
-    QString str = QString::fromStdString(response.userip());
-    secure_voice_call::changePort(str, 2000);
-    std::cout << str.toStdString() << std::endl;
+    QString qstrUserip = QString::fromStdString(response.userip());
+    secure_voice_call::changePort(qstrUserip, 5001);
+    std::thread callThread([this, &qstrUserip, &username](){
+        mPeerToPeer.sendCallRequest(qstrUserip.toStdString(), username.toStdString());
+    });
+    callThread.detach();
 }

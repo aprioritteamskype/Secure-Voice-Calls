@@ -3,6 +3,7 @@
 using namespace secure_voice_call;
 QMLClientState::QMLClientState(QObject *parent) : QObject(parent)
 {
+    connect(this, &QMLClientState::setStateInvoker, this, &QMLClientState::setState);
 }
 
 void QMLClientState::setState(QMLClientState::ClientStates clientState)

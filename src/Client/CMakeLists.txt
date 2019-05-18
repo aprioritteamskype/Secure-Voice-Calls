@@ -59,13 +59,16 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Headers")
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-set(CPPSOURCES "Sources/main.cpp" "Sources/client.cpp" "Sources/qmlclientstate.cpp"
-    "Sources/qmlclientsonlinemodel.cpp" "Sources/utils.cpp" "Sources/peertopeer.cpp"
-   "../Tools/recorder/recorder.cpp" "../Tools/player/player.cpp")
-set(CPPHEADERS "Headers/client.h" "Headers/qmlclientstate.h"
-    "Headers/qmlclientsonlinemodel.h" "Headers/utils.h" "Headers/peertopeer.h"
-    "../Tools/recorder/recorder.h" "../Tools/player/player.h")
-
+set(CPPSOURCES "Sources/main.cpp"
+    "Sources/client.cpp"
+    "Sources/qmlclientstate.cpp"
+    "Sources/qmlclientsonlinemodel.cpp"
+    "Sources/utils.cpp" "Sources/peertopeer.cpp")
+set(CPPHEADERS "Headers/client.h"
+    "Headers/qmlclientstate.h"
+    "Headers/qmlclientsonlinemodel.h"
+    "Headers/utils.h"
+    "Headers/peertopeer.h")
 
 add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS} "qml.qrc" ${hw_proto_srcs} ${hw_grpc_srcs})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick Qt5::Multimedia ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})

@@ -25,19 +25,16 @@ message AuthorizationRequest {
 message AuthorizationResponse {
   TypeMessage responseType = 1;
   bool isSuccessful = 2;
-  repeated string user_names = 3;
-  string userIp = 4;
+  repeated string userNames = 3;  //list of users online
+  string userIp = 4;              //get ip by username
 }
 
 message CallRequest {
   string callerName = 1;
-  bytes audiobytes = 2;
-  int32 packetSize = 3;
+  uint32 audiobytes = 2;          //voice 8 bytes
 }
 
 message CallResponse {
   bool isSuccessful = 1;
-//  int32 audiobytes = 2;
-  bytes audiobytes = 2;
-  int32 packetSize = 3;
+  uint32 audiobytes = 2;          //voice 8 bytes
 }
