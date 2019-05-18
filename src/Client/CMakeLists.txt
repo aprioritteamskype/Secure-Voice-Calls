@@ -12,7 +12,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 find_package(Qt5 COMPONENTS Core Quick REQUIRED)
-
+find_package(Qt5Multimedia REQUIRED)
 #--------------------------------------------------
 # This branch assumes that gRPC and all its dependencies are already installed
 # on this system, so they can be located by find_package().
@@ -60,9 +60,12 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Headers")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 set(CPPSOURCES "Sources/main.cpp" "Sources/client.cpp" "Sources/qmlclientstate.cpp"
-    "Sources/qmlclientsonlinemodel.cpp" "Sources/utils.cpp" "Sources/peertopeer.cpp")
+    "Sources/qmlclientsonlinemodel.cpp" "Sources/utils.cpp" "Sources/peertopeer.cpp"
+   "../Tools/recorder/recorder.cpp" "../Tools/player/player.cpp")
 set(CPPHEADERS "Headers/client.h" "Headers/qmlclientstate.h"
-    "Headers/qmlclientsonlinemodel.h" "Headers/utils.h" "Headers/peertopeer.h")
+    "Headers/qmlclientsonlinemodel.h" "Headers/utils.h" "Headers/peertopeer.h"
+    "../Tools/recorder/recorder.h" "../Tools/player/player.h")
+
 
 add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS} "qml.qrc" ${hw_proto_srcs} ${hw_grpc_srcs})
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick Qt5::Multimedia ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})

@@ -2,14 +2,28 @@
 #include <iostream> //FIXME
 #include <memory>
 #include <thread>
-
+#define PACKET_SIZE 16
 using namespace std;
 
 secure_voice_call::PeerToPeer::PeerToPeer()
     : QObject (nullptr),
       mServerAddress("0.0.0.0:5001")
 {
+    mRecorder.reset(new Recorder());
+    connect(this,SIGNAL(startRecordingAudio()),mRecorder.get(),SLOT(runRecorder()));
+    connect(this,SIGNAL(stopRecordingAudio()),mRecorder.get(),SLOT(stopRecorder()));
+    mPlayer.reset(new Player());
+    connect(this,SIGNAL(startPlayingAudio()),mPlayer.get(),SLOT(runPlayer()));
+    connect(this,SIGNAL(stopPlayingAudio()),mPlayer.get(),SLOT(stopPlayer()));
 
+    recThread = new QThread(this);
+    playThread = new QThread(this);
+    connect(this,SIGNAL(destroyed()),recThread,SLOT(quit()));
+    connect(this,SIGNAL(destroyed()),playThread,SLOT(quit()));
+    mPlayer->moveToThread(playThread);
+    mRecorder->moveToThread(recThread);
+    playThread->start();
+    recThread->start();
 }
 
 void secure_voice_call::PeerToPeer::runServer()
@@ -90,47 +104,85 @@ void secure_voice_call::PeerToPeer::clientReadVoice()
 {
     //stub
     CallResponse response;
-    while (mClientStream->Read(&response)) {
-        cout << "Client_ClientSide get response: " << response.audiobytes() << endl;
-        //do something with request.audiobytes
-    }
+    char* const pBuff = mPlayer->getBuff();//pointer to buffer in Player
+    const quint64 buffSize = mPlayer->getBuffSize();
+    quint32 packetSize;
+    emit startPlayingAudio();
+        while (mClientStream->Read(&response)) {
+            packetSize = response.packetsize();
+            memcpy(&pBuff[mPlayer->get_mBuffReadyToRead()%buffSize],response.audiobytes().c_str(), packetSize); //write data to buffer
+            mPlayer->raise_mBufReadyToRead(packetSize); //next buffer location
+        }
+    emit stopPlayingAudio();
+    return;
 }
 
 void secure_voice_call::PeerToPeer::clientWriteVoice()
 {
-    // stub
+    emit startRecordingAudio();
     CallRequest request;
-    for (int i = 20; i < 30; ++i) {
-        request.set_audiobytes(i);
-        mClientStream->Write(request);
+    bool flag = true;
+
+    char* const pBuff = mRecorder->getBuff();//pointer to buffer in Recorder
+    quint64 buffSize = mRecorder->getBuffSize();
+    char* sendingPacket = new char[PACKET_SIZE];
+
+    while(flag){
+        if(mRecorder->getBuffWritePos() - mBufSendPos > PACKET_SIZE){
+            memcpy(sendingPacket,&pBuff[mBufSendPos%buffSize],PACKET_SIZE);
+            mBufSendPos += PACKET_SIZE;
+            request.set_audiobytes(sendingPacket,PACKET_SIZE);
+            request.set_packetsize(PACKET_SIZE);
+            if(!mClientStream->Write(request)){
+                std::cout<<"There is no connection"<<std::endl;
+                emit stopRecordingAudio();
+                return;
+            }
+        }
     }
+    emit stopPlayingAudio();
 }
 
 void secure_voice_call::PeerToPeer::serverReadVoice(ServerReaderWriter<CallResponse, CallRequest> *stream)
 {
     //stub
     CallRequest request;
-    while (stream->Read(&request)) {
-        cout << "Client_ServerSide get request: " << request.audiobytes() << endl;
-        //do something with request.audiobytes
-    }
+    char* const pBuff = mPlayer->getBuff();//pointer to buffer in Player
+    const quint64 buffSize = mPlayer->getBuffSize();
+    quint32 packetSize;
+    emit startPlayingAudio();
+        while (stream->Read(&request)) {
+            packetSize = request.packetsize();
+            memcpy(&pBuff[mPlayer->get_mBuffReadyToRead()%buffSize],request.audiobytes().c_str(), packetSize); //write data to buffer
+            mPlayer->raise_mBufReadyToRead(packetSize); //next buffer location
+        }
+    emit stopPlayingAudio();
+    return;
 }
 
 void secure_voice_call::PeerToPeer::serverWriteVoice(ServerReaderWriter<CallResponse, CallRequest> *stream)
 {
     //stub
     CallResponse response;
-    for (int i =0; i < 10; ++i) {
-        response.set_audiobytes(i);
-        stream->Write(response);
+    emit startRecordingAudio();
+    bool flag = true;
+
+    char* const pBuff = mRecorder->getBuff();//pointer to buffer in Recorder
+    quint64 buffSize = mRecorder->getBuffSize();
+    char* sendingPacket = new char[PACKET_SIZE];
+
+    while(flag){
+        if(mRecorder->getBuffWritePos() - mBufSendPos > PACKET_SIZE){
+            memcpy(sendingPacket,&pBuff[mBufSendPos%buffSize],PACKET_SIZE);
+            mBufSendPos += PACKET_SIZE;
+            response.set_audiobytes(sendingPacket,PACKET_SIZE);
+            response.set_packetsize(PACKET_SIZE);
+            if(!stream->Write(response)){
+                std::cout<<"There is no connection"<<std::endl;
+                emit stopRecordingAudio();
+                return;
+            }
+        }
     }
-    //--------------------------------------------------
-    //audio record code
-//    CallResponse response;
-//    response.set_audiobytes(11111);
-//    while (true) {
-//        if(!stream->Write(response)){
-//            break;
-//        }
-//    }
+    emit stopPlayingAudio();
 }

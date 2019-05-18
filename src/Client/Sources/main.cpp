@@ -14,13 +14,15 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
     secure_voice_call::PeerToPeer *peerToPeer = new secure_voice_call::PeerToPeer;
+    secure_voice_call::PeerToPeer *peerToPeer2 = new secure_voice_call::PeerToPeer;
 
 //    std::thread t([peerToPeer](){
 //        peerToPeer->runServer();
 //    });
 
-    std::thread t2([peerToPeer](){
-        peerToPeer->sendCallRequest("0.0.0.0:5001", "ivan");
+
+    std::thread t2([peerToPeer2](){
+        peerToPeer2->sendCallRequest("0.0.0.0:5001", "ivan");
     });
 
     secure_voice_call::QMLClientsOnlineModel *model = new secure_voice_call::QMLClientsOnlineModel();
