@@ -1,6 +1,7 @@
 import QtQuick 2.9
 import QtQuick.Window 2.2
-import com.securevoivecaller 1.0
+import QtQuick.Controls 2.5
+import com.securevoicecaller 1.0
 
 Window {
     visible: true
@@ -44,6 +45,21 @@ Window {
             visible: root.state == "authorization"
         }
 
+        BusyIndicator {
+            width: parent.width / 3
+            height: parent.width / 3
+            anchors.centerIn: parent
+            visible: root.state == "outgoingcall"
+        }
+
+        Rectangle {
+            width: parent.width / 3
+            height: parent.width / 3
+            anchors.centerIn: parent
+            color: "red"
+            visible: root.state == "incomingcall"
+        }
+
         states : [
             State {
                 name: "authorization"
@@ -56,7 +72,16 @@ Window {
             State {
                 name: "inconversation"
                 when: globClientState.clientState === QMLClientState.InConversation
+            },
+            State {
+                name: "outgoingcall"
+                when: globClientState.clientState === QMLClientState.OutgoingCall
+            },
+            State {
+                name: "incomingcall"
+                when: globClientState.clientState === QMLClientState.IncomingCall
             }
+
         ]
     }
 }

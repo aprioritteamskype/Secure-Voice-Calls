@@ -4,7 +4,7 @@
 void secure_voice_call::Server::addClientsToResponse(secure_voice_call::AuthorizationResponse &response)
 {
     for (const auto &element : m_clientOnline){
-        response.add_user_names(element.first);
+        response.add_usernames(element.first);
     }
 }
 

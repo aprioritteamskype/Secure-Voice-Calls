@@ -26,7 +26,7 @@ void secure_voice_call::changeHost(QString &ip, const QString &host)
     ip = std::move(tmp);
 }
 
-void secure_voice_call::changePort(QString &ip, const unsigned int port)
+void secure_voice_call::changePort(QString &ip, unsigned int port)
 {
     QRegExp ipRegExp(QString("^(ipv[46]:)?(%1\\.%1\\.%1\\.%1):(%2)$")
             .arg("\\d{1,3}")
