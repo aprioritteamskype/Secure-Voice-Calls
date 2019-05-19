@@ -2,9 +2,12 @@
     <qresource prefix="/">
         <file>Design/main.qml</file>
         <file>Design/Background.qml</file>
-        <file>Design/ClientsList.qml</file>
-        <file>Design/CallButton.qml</file>
-        <file>Design/Authorization.qml</file>
-        <file>Design/RefreshButton.qml</file>
+        <file>Design/Images/user.png</file>
+        <file>Design/Online/Online.qml</file>
+        <file>Design/Online/ClientsList.qml</file>
+        <file>Design/Online/RefreshButton.qml</file>
+        <file>Design/Online/CallButton.qml</file>
+        <file>Design/Authorization/Authorization.qml</file>
+        <file>Design/InConversation/InConversation.qml</file>
     </qresource>
 </RCC>

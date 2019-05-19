@@ -33,7 +33,6 @@ namespace secure_voice_call{
 
     signals:
         void stateChanged(ClientStates clientState);
-        void setStateInvoker(ClientStates clientState);
         void tryAuthorizate(const QString &login);
         void refreshClientList();
         void getUserIdByName(const QString &username);

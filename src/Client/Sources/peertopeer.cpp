@@ -77,7 +77,7 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         return Status::CANCELLED;
     } else {
         cout << "ServerSide: ClientStates::IncomingCall: " << endl;
-        mClientState->setStateInvoker(QMLClientState::ClientStates::IncomingCall);
+        mClientState->setState(QMLClientState::ClientStates::IncomingCall);
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
     }
@@ -88,7 +88,7 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         stream->Write(response);
         mIsInConversation = true;
         cout << "ServerSide: QMLClientState::ClientStates::InConversation: " << endl;
-        mClientState->setStateInvoker(QMLClientState::ClientStates::InConversation);
+        mClientState->setState(QMLClientState::ClientStates::InConversation);
         std::thread tRead([this, stream](){
             serverReadVoice(stream);
         });

@@ -1,6 +1,9 @@
 import QtQuick 2.12
 
 Rectangle {
+    anchors.centerIn: parent
+    width: parent.width / 2
+    height: parent.height / 2
     radius: 70
     border.width: 6
     border.color: "#7f1d8b"
