@@ -28,7 +28,7 @@ Rectangle {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            globClientState.refreshClientList()
+            client.sendClientsOnlineRequest()
         }
         hoverEnabled: true
     }

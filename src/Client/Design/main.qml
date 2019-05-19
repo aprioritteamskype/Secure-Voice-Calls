@@ -21,43 +21,25 @@ Window {
 
         Loader {
             id: loaderAuthorizationComponent
-            anchors.fill: parent
+            anchors.centerIn: parent
+            width: parent.width / 2
+            height: parent.height / 2
             source: "Authorization/Authorization.qml"
             active: globClientState.clientState === QMLClientState.Authorization
         }
 
         Loader {
             id: loaderOutgoingCallComponent
-            anchors.fill: parent
-            sourceComponent: outgoingCallIndicator
+            anchors.centerIn: parent
+            source: "OutgoingCall/OutgoingCall.qml"
             active: globClientState.clientState === QMLClientState.OutgoingCall
-            Component {
-                id: outgoingCallIndicator
-                BusyIndicator {
-                    width: parent.width / 3
-                    height: parent.width / 3
-                    anchors.centerIn: parent
-                }
-            }
         }
 
         Loader {
             id: loaderIncomingCallComponent
-            anchors.fill: parent
-            sourceComponent: incomingCallIndicator
+            anchors.centerIn: parent
+            source: "IncomingCall/IncomingCall.qml"
             active: globClientState.clientState === QMLClientState.IncomingCall
-
-            Component {
-                id: incomingCallIndicator
-                Image {
-                    id: userImage
-                    width: parent.width / 3
-                    height: parent.width / 3
-                    anchors.centerIn: parent
-                    source: "qrc:/Design/Images/user.png"
-                }
-
-            }
         }
 
         Loader {

@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
                                                "Uncreatable type QMLClientState");
     engine.rootContext()->setContextProperty("globClientState", &secure_voice_call::QMLClientState::getInstance());
     engine.rootContext()->setContextProperty("onlineClientsModel", model);
+    engine.rootContext()->setContextProperty("client", client);
 
     engine.load(QUrl(QStringLiteral("qrc:/Design/main.qml")));
     if (engine.rootObjects().isEmpty())

@@ -9,5 +9,7 @@
         <file>Design/Online/CallButton.qml</file>
         <file>Design/Authorization/Authorization.qml</file>
         <file>Design/InConversation/InConversation.qml</file>
+        <file>Design/IncomingCall/IncomingCall.qml</file>
+        <file>Design/OutgoingCall/OutgoingCall.qml</file>
     </qresource>
 </RCC>

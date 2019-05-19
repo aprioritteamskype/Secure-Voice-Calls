@@ -42,7 +42,7 @@ void secure_voice_call::PeerToPeer::sendCallRequest(const string &ip, const std:
     CallRequest request;
     CallResponse response;
 
-    request.set_callername(callername); //FIXME
+    request.set_callername(callername);
     mClientStream = mstub->HandShake(mContext.get());
     mClientStream->Write(request);
     mClientStream->Read(&response);
@@ -145,7 +145,7 @@ void secure_voice_call::PeerToPeer::serverWriteVoice(ServerReaderWriter<CallResp
 {
     //stub
     CallResponse response;
-    for (int i =0; i < 4; ++i) {
+    for (int i =0; i < 4 && mIsInConversation; ++i) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         response.set_audiobytes(i);
         stream->Write(response);

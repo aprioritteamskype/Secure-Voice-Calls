@@ -16,13 +16,14 @@ using grpc::ClientReaderWriter;
 
 namespace secure_voice_call {
     class Client : public QObject {
+        Q_OBJECT
     public:
         Client(secure_voice_call::QMLClientsOnlineModel &model);
 
-       grpc::Status sendAuthorizationRequest(const QString &name);
-       void addClientToModel(const AuthorizationResponse &response) const;
-       void sendClientsOnlineRequest();
-       void sendIdByUserNameRequest(const QString &username);
+       Q_INVOKABLE void sendAuthorizationRequest(const QString &name);
+       Q_INVOKABLE void sendClientsOnlineRequest();
+       Q_INVOKABLE void sendIdByUserNameRequest(const QString &username);
+        void addClientToModel(const AuthorizationResponse &response) const;
     private:
         std::string mServerAddress;
         std::string mname;

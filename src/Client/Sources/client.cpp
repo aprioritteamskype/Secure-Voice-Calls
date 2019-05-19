@@ -17,17 +17,9 @@ secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &mode
                 grpc::InsecureChannelCredentials()
                 );
     mstub = Greeter::NewStub(channel);
-
-    using secure_voice_call::QMLClientState;
-    connect(&QMLClientState::getInstance(), &QMLClientState::tryAuthorizate, //TODO replace connections to object calls in qml
-            this, &Client::sendAuthorizationRequest);
-    connect(&QMLClientState::getInstance(), &QMLClientState::refreshClientList,
-            this, &Client::sendClientsOnlineRequest);
-    connect(&QMLClientState::getInstance(), &QMLClientState::getUserIdByName,
-            this, &Client::sendIdByUserNameRequest);
 }
 
-grpc::Status secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
+void secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
 {
     Status status;
     AuthorizationRequest request;
@@ -43,13 +35,13 @@ grpc::Status secure_voice_call::Client::sendAuthorizationRequest(const QString &
     if (!mstream->Write(request)) {
         mHasConnection = false;
         mstream->WritesDone();
-        return  mstream->Finish();
+        status =  mstream->Finish();
     }
 
     if (!mstream->Read(&response)) {
         mstream->WritesDone();
         mHasConnection = false;
-        return mstream->Finish();
+        status = mstream->Finish();
     }
 
         if (response.issuccessful()
@@ -59,7 +51,8 @@ grpc::Status secure_voice_call::Client::sendAuthorizationRequest(const QString &
             using secure_voice_call::QMLClientState;
             QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
         }
-        return status;
+        if(!status.ok())
+        std::cout << "63 client.cpp status not ok" << std::endl;
 }
 
 void secure_voice_call::Client::addClientToModel(const secure_voice_call::AuthorizationResponse &response) const

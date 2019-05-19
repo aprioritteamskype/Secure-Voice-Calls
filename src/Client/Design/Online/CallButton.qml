@@ -28,7 +28,7 @@ Rectangle {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            globClientState.getUserIdByName(model.username)
+            client.sendIdByUserNameRequest(model.username)
         }
         hoverEnabled: true
     }
