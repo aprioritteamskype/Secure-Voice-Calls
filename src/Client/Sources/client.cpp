@@ -131,7 +131,7 @@ void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
     }
     QString qstrUserip = QString::fromStdString(response.userip());
     secure_voice_call::changePort(qstrUserip, 5001);
-    std::thread callThread([this, &qstrUserip, &username](){
+    std::thread callThread([this, qstrUserip, &username](){
         mPeerToPeer.sendCallRequest(qstrUserip.toStdString(), username.toStdString());
     });
     callThread.detach();

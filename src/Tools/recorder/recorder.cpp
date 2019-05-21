@@ -11,7 +11,7 @@
 
 Recorder::Recorder(const QAudioFormat &format,const QAudioDeviceInfo &device,quint64 bufferSize):mFormat(format),mDevice(device),mBuffSize(bufferSize){
     mBuff.resize(mBuffSize);
-    pbuff=mBuff.data();//get buffer adress
+    pBuff=mBuff.data();//get buffer adress
     open(QIODevice::WriteOnly);
 }
 
@@ -20,7 +20,7 @@ Recorder::Recorder(quint64 buffSize):mBuffSize(buffSize){
     setDefaultFormat();  //set default mFormat
     setDefaultDevice();  //set default device
     mBuff.resize(mBuffSize);
-    pbuff=mBuff.data();  //get buffer adress
+    pBuff=mBuff.data();  //get buffer adress
     open(QIODevice::WriteOnly);
 }
 
@@ -28,19 +28,19 @@ Recorder::~Recorder(){
     close();
 }
 
-quint64 Recorder::getBuffWritePos() const
-{
-    return mBufWritePos;
-}
-
-char *Recorder::getBuff() const
-{
-    return pbuff;
-}
-
 quint64 Recorder::getBuffSize() const
 {
     return mBuffSize;
+}
+
+bool Recorder::getDataFromBuff(char *data, quint64 bytes)
+{
+    if(mBufWritePos - mBufSendPos >= bytes){//FIXME
+        memcpy(data,&pBuff[mBufSendPos%mBuffSize],bytes);
+        mBufSendPos += bytes;
+        return true;
+    }
+    return false;
 }
 
 
@@ -49,7 +49,7 @@ qint64 Recorder::writeData(const char *data, qint64 len)
     qint64 total=0;
     while (len > total)
     {
-        memcpy(&pbuff[mBufWritePos%mBuffSize],&data[total], RECORDING_BYTES); //write 2Bytes into circular buffer
+        memcpy(&pBuff[mBufWritePos%mBuffSize],&data[total], RECORDING_BYTES); //write 2Bytes into circular buffer
         mBufWritePos+=RECORDING_BYTES; //next 16bit buffer location
         total+=RECORDING_BYTES;  //next data location
     }

@@ -8,43 +8,44 @@
 #define SAMPLE_SIZE 16
 #define SAMPLE_TYPE SignedInt
 #define PLAYING_BYTES 2
-Player::Player(const QAudioFormat &format,const QAudioDeviceInfo &device,qint64 bufferSize):mFormat(format),mDevice(device),mBuffSize(bufferSize){
-     mBuff.resize(bufferSize);
-     pbuff=mBuff.data();//get buffer adress
-     open(QIODevice::ReadOnly);
+
+Player::Player(const QAudioFormat &format,const QAudioDeviceInfo &device,qint64 bufferSize):mFormat(format),
+    mDevice(device),mBuffSize(bufferSize>PLAYING_BYTES?bufferSize:PLAYING_BYTES){
+    mBuff.resize(mBuffSize);
+    pBuff=mBuff.data();//get buffer adress
+    open(QIODevice::ReadOnly);
 }
 
-Player::Player(quint64 bufferSize):mBuffSize(bufferSize){
-     //set default mFormat
-     setDefaultFormat();
+Player::Player(quint64 bufferSize):mBuffSize(bufferSize>PLAYING_BYTES?bufferSize:PLAYING_BYTES){
+    //set default mFormat
+    setDefaultFormat();
 
-     //set default device
-     setDefaultDevice();
+    //set default device
+    setDefaultDevice();
 
-     //mAudiOutput.reset(new QAudioOutput (mDevice, mFormat));
+    //mAudiOutput.reset(new QAudioOutput (mDevice, mFormat));
 
-      mBuff.resize(mBuffSize);//set 64 kb Buffer
-      pbuff=mBuff.data();//get buffer adress
-      open(QIODevice::ReadOnly);
+    mBuff.resize(mBuffSize);//set 64 kb Buffer
+    pBuff=mBuff.data();//get buffer adress
+    open(QIODevice::ReadOnly);
 }
 
 Player::~Player(){
     close();
 }
 
-quint64 Player::get_mBuffReadyToRead() const
+void Player::pushDataToBuff(const char *data, quint64 bytes)
 {
-    return mBufReadyToRead ;
-}
-
-void Player::raise_mBufReadyToRead(quint64 bytesInPacket)
-{
-    mBufReadyToRead+=bytesInPacket;
-}
-
-char *Player::getBuff() const
-{
-    return pbuff;
+    quint64 ramainingSize = mBuffSize - mBufReadyToRead%mBuffSize;
+    if(ramainingSize < bytes){//FIXME
+        pushDataToBuff(data,ramainingSize);
+        pushDataToBuff(data+ramainingSize,bytes-ramainingSize);
+    }
+    else
+    {
+        memcpy(&pBuff[mBufReadyToRead%mBuffSize],data, bytes); //write data to buffer
+        mBufReadyToRead+=bytes; //next buffer location
+    }
 }
 
 quint64 Player::getBuffSize() const
@@ -75,11 +76,11 @@ qint64 Player::readData(char *data, qint64 len)
 {
     qint64 total = 0;
     while (len > total  && mBufReadyToRead > mBufReadPos)//write and synchronise buffers
-           {
-            memcpy(&data[total],&pbuff[mBufReadPos%mBuffSize],PLAYING_BYTES);    //copy 2 Bytes
-            mBufReadPos+=PLAYING_BYTES; //point to next buffer 16 bit location
-            total+=PLAYING_BYTES;
-           }
+    {
+        memcpy(&data[total],&pBuff[mBufReadPos%mBuffSize],PLAYING_BYTES);    //copy 2 Bytes
+        mBufReadPos+=PLAYING_BYTES; //point to next buffer 16 bit location
+        total+=PLAYING_BYTES;
+    }
     return total;  //the reset interval
 }
 
@@ -97,7 +98,7 @@ void Player::setDefaultDevice(){
     QAudioDeviceInfo info(mDevice);
     if (!info.isFormatSupported(mFormat)) {
         qDebug() << "Raw audio format not supported by backend, cannot write audio.";
-        return;//check other devices here
+        return;//check other devices here //FIXME
     }
 }
 

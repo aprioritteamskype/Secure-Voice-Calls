@@ -5,7 +5,7 @@
 #include <grpcpp/grpcpp.h>
 #include "client-server.grpc.pb.h"
 #include "qmlclientstate.h"
-
+#include "audiomodule.h"
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
@@ -22,7 +22,7 @@ using secure_voice_call::CallRequest;
 using secure_voice_call::CallResponse;
 
 namespace secure_voice_call {
-    class PeerToPeer final : public CallGreeter::Service, public QObject
+    class PeerToPeer final :public CallGreeter::Service
     {
     public:
         PeerToPeer();
@@ -46,5 +46,6 @@ namespace secure_voice_call {
         std::unique_ptr<ClientContext> mContext;
         std::thread mServerThread;
         QMLClientState* mClientState;
+        std::unique_ptr<AudioModule> mAudioModule;
     };
 }

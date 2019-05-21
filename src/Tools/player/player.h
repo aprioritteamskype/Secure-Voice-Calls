@@ -14,10 +14,8 @@ public:
     Player(const QAudioFormat &format,const QAudioDeviceInfo &device,qint64 bufferSize);
     ~Player();
 
-    quint64 get_mBuffReadyToRead()const;
-    char* getBuff()const;
     quint64 getBuffSize()const;
-    void   raise_mBufReadyToRead(quint64 bytesInPacket);
+    void   pushDataToBuff(const char* data,quint64 bytes);
 
     qint64 readData(char *data, qint64 maxlen) override;
     qint64 writeData(const char *data, qint64 len) override;
@@ -32,7 +30,7 @@ private:
 private:
     const quint64 mBuffSize;
     QByteArray mBuff;//buffer
-    char *pbuff;//ptr to buffer
+    char *pBuff;//ptr to buffer
     quint64 mBufReadyToRead = 0;//position where data is ready to read
     quint64 mBufReadPos = 0;//position of reading from circular buffer
     QAudioFormat mFormat;

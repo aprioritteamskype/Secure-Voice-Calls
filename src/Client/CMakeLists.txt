@@ -33,7 +33,7 @@ find_package(gRPC CONFIG REQUIRED)
 find_package(protoc CONFIG REQUIRED)
 message(STATUS "Using gRPC ${gRPC_VERSION}")
 
-set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++_unsecure)
+set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 
 # Proto file
@@ -55,6 +55,11 @@ add_custom_command(
         "${hw_proto}"
       DEPENDS "${hw_proto}")
 
+ set(TOOLSPATH "../Tools")
+ include_directories("${TOOLSPATH}/recorder")
+ include_directories("${TOOLSPATH}/player")
+ message("paht to tools ${TOOLSPATH}")
+
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Headers")
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
@@ -63,12 +68,24 @@ set(CPPSOURCES "Sources/main.cpp"
     "Sources/client.cpp"
     "Sources/qmlclientstate.cpp"
     "Sources/qmlclientsonlinemodel.cpp"
-    "Sources/utils.cpp" "Sources/peertopeer.cpp")
+    "Sources/utils.cpp" "Sources/peertopeer.cpp"
+    "Sources/audiomodule.cpp"
+    "Sources/audiowriter.cpp"
+    "Sources/audioreader.cpp"
+    "../Tools/recorder/recorder.cpp"
+    "../Tools/player/player.cpp"
+    )
 set(CPPHEADERS "Headers/client.h"
     "Headers/qmlclientstate.h"
     "Headers/qmlclientsonlinemodel.h"
     "Headers/utils.h"
-    "Headers/peertopeer.h")
+    "Headers/peertopeer.h"
+    "Headers/audiomodule.h"
+    "Headers/audiowriter.h"
+    "Headers/audioreader.h"
+    "../Tools/recorder/recorder.h"
+    "../Tools/player/player.h"
+    )
 
 add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS} "qml.qrc" ${hw_proto_srcs} ${hw_grpc_srcs})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick Qt5::Multimedia ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
