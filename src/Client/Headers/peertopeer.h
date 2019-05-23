@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <thread>
+#include <atomic>
 #include <QObject>
 #include <grpcpp/grpcpp.h>
 #include "client-server.grpc.pb.h"
@@ -26,19 +27,20 @@ namespace secure_voice_call {
     {
     public:
         PeerToPeer();
-        void runServer();
 
+        void declineCall();
         void sendCallRequest(const std::string &ip, const std::string &callername);
         // Service interface
     public:
         grpc::Status HandShake(grpc::ServerContext *context, ::grpc::ServerReaderWriter<CallResponse, CallRequest> *stream) override;
     private:
+        void runServer();
         void clientReadVoice();
         void clientWriteVoice();
         void serverReadVoice(ServerReaderWriter<secure_voice_call::CallResponse, secure_voice_call::CallRequest> *stream);
         void serverWriteVoice(ServerReaderWriter<secure_voice_call::CallResponse, secure_voice_call::CallRequest> *stream);
     private:
-        bool mIsInConversation = false;
+        std::atomic<bool> mIsInConversation{false};
         std::string mClientServerSideAddress;
         std::string mCallerName;
         std::unique_ptr<ClientReaderWriter<CallRequest, CallResponse>> mClientStream;

@@ -20,10 +20,12 @@ namespace secure_voice_call {
     public:
         Client(secure_voice_call::QMLClientsOnlineModel &model);
 
-       Q_INVOKABLE void sendAuthorizationRequest(const QString &name);
-       Q_INVOKABLE void sendClientsOnlineRequest();
-       Q_INVOKABLE void sendIdByUserNameRequest(const QString &username);
+        Q_INVOKABLE void sendAuthorizationRequest(const QString &name);
+        Q_INVOKABLE void sendClientsOnlineRequest();
+        Q_INVOKABLE void sendIdByUserNameRequest(const QString &username);
+        Q_INVOKABLE void declineCall();
         void addClientToModel(const AuthorizationResponse &response) const;
+    private:
     private:
         std::string mServerAddress;
         std::string mname;

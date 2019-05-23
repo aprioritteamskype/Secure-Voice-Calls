@@ -80,13 +80,13 @@ Item {
                 id: declineArea
                 anchors.fill: parent
                 hoverEnabled: true
+                onClicked: {
+                    client.declineCall();
+                }
             }
         }
         width: 100
         height: 60
         text: "decline"
-        onClicked: {
-            console.log("decline pressed")
-        }
     }
 }

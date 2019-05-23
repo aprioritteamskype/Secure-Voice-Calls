@@ -78,14 +78,14 @@ Item {
                         id: declineArea
                         anchors.fill: parent
                         hoverEnabled: true
+                        onClicked: {
+                            console.log("nevatest decline pressed");
+                        }
                     }
                 }
                 width: 100
                 height: 60
                 text: "stop call"
-                onClicked: {
-                    console.log("decline pressed")
-                }
             }
         }
     }

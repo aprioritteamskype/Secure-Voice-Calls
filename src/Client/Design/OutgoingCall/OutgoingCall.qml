@@ -40,7 +40,8 @@ Item {
         height: 60
         text: "cancel call"
         onClicked: {
-            console.log("decline pressed")
+            console.log("nevatest decline pressed");
+            client.declineCall();
         }
     }
 }

@@ -32,27 +32,27 @@ void secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
     AuthorizationResponse response;
     mstream = mstub->Authorization(mContext.get());
 
-    if (!mstream->Write(request)) {
+    if (!mstream->Write(request) || !mstream->Read(&response)) {
+        mHasConnection = false;
+        mstream->WritesDone();
+        status =  mstream->Finish();
+        std::cout << status.error_message() << std::endl;
+        return;
+    }
+
+    if (response.issuccessful()
+            && response.responsetype() == secure_voice_call::TypeMessage::Authorization){
+        mHasConnection = true;
+        addClientToModel(response);
+        using secure_voice_call::QMLClientState;
+        QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
+    } else {
         mHasConnection = false;
         mstream->WritesDone();
         status =  mstream->Finish();
     }
-
-    if (!mstream->Read(&response)) {
-        mstream->WritesDone();
-        mHasConnection = false;
-        status = mstream->Finish();
-    }
-
-        if (response.issuccessful()
-                && response.responsetype() == secure_voice_call::TypeMessage::Authorization){
-            mHasConnection = true;
-            addClientToModel(response);
-            using secure_voice_call::QMLClientState;
-            QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
-        }
-        if(!status.ok())
-        std::cout << "63 client.cpp status not ok" << std::endl;
+    if(!status.ok())
+        std::cout << "row 63 client.cpp bad authorization" << std::endl;
 }
 
 void secure_voice_call::Client::addClientToModel(const secure_voice_call::AuthorizationResponse &response) const
@@ -64,6 +64,11 @@ void secure_voice_call::Client::addClientToModel(const secure_voice_call::Author
         }
     }
     mModel->setCLients(clients);
+}
+
+void secure_voice_call::Client::declineCall()
+{
+    mPeerToPeer.declineCall();
 }
 
 void secure_voice_call::Client::sendClientsOnlineRequest()
