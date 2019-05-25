@@ -18,7 +18,10 @@ namespace secure_voice_call {
     class Client : public QObject {
         Q_OBJECT
     public:
-        Client(secure_voice_call::QMLClientsOnlineModel &model);
+        Client(secure_voice_call::QMLClientsOnlineModel &model,
+               int p2pClientSidePort = 5001,
+               int p2pServerSidePort = 5001,
+               const std::string& serverAddress = "0.0.0.0:5000");
 
         Q_INVOKABLE void sendAuthorizationRequest(const QString &name);
         Q_INVOKABLE void sendClientsOnlineRequest();
@@ -30,6 +33,7 @@ namespace secure_voice_call {
         std::string mServerAddress;
         std::string mname;
         bool mHasConnection = false;
+        int mP2PClientSidePort;
         std::unique_ptr<Greeter::Stub> mstub;
         std::unique_ptr<ClientReaderWriter<AuthorizationRequest, AuthorizationResponse>> mstream;
         std::unique_ptr<ClientContext> mContext;

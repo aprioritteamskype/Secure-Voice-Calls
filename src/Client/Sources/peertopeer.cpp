@@ -6,9 +6,9 @@
 
 using namespace std;
 
-secure_voice_call::PeerToPeer::PeerToPeer()
+secure_voice_call::PeerToPeer::PeerToPeer(int p2pServerSidePort)
     : QObject (nullptr),
-      mClientServerSideAddress("0.0.0.0:5001")
+      mClientServerSideAddress("0.0.0.0:" + std::to_string(p2pServerSidePort))
 {
     mClientState = &QMLClientState::getInstance();
     mServerThread =  std::thread([this](){

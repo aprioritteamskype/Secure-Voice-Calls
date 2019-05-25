@@ -4,10 +4,15 @@
 #include "utils.h"
 #include <iostream> //FIXME extra include
 
-secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model)
+secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model,
+                                  int p2pClientSidePort,
+                                  int p2pServerSidePort,
+                                  const std::string& serverAddress)
     : QObject (nullptr),
-      mServerAddress("0.0.0.0:5000"),
-      mModel(&model)
+      mServerAddress(serverAddress),
+      mP2PClientSidePort(p2pClientSidePort),
+      mModel(&model),
+      mPeerToPeer(p2pServerSidePort)
 {
     mClientsOnlineRequest.set_requesttype(secure_voice_call::TypeMessage::GetClientsOnline);
     mGetIpByNameRequest.set_requesttype(secure_voice_call::TypeMessage::GetIpByUserName);
@@ -128,11 +133,11 @@ void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
         return;
     }
     QString qstrUserip = QString::fromStdString(response.userip());
-    secure_voice_call::changePort(qstrUserip, 5002);
+    secure_voice_call::changePort(qstrUserip, mP2PClientSidePort);
     std::thread callThread([this, qstrUserip, username](){
         try
         {
-            mPeerToPeer.sendCallRequest(qstrUserip.toStdString(), username.toStdString());
+        mPeerToPeer.sendCallRequest(qstrUserip.toStdString(), username.toStdString());
         }
         catch (const std::exception& ex)
         {

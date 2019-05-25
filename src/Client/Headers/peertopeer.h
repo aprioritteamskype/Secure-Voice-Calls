@@ -26,7 +26,7 @@ namespace secure_voice_call {
     class PeerToPeer final : public CallGreeter::Service, public QObject
     {
     public:
-        PeerToPeer();
+        PeerToPeer(int p2pServerSidePort = 5001);
 
         void declineCall();
         void sendCallRequest(std::string ip, std::string callername);
