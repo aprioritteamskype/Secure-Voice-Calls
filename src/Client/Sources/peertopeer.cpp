@@ -16,6 +16,11 @@ secure_voice_call::PeerToPeer::PeerToPeer()
     });
 }
 
+void secure_voice_call::PeerToPeer::declineCall()
+{
+    mIsInConversation = false;
+}
+
 void secure_voice_call::PeerToPeer::runServer()
 {
     ServerBuilder builder;
@@ -29,10 +34,9 @@ void secure_voice_call::PeerToPeer::runServer()
     server->Wait();
 }
 
-void secure_voice_call::PeerToPeer::sendCallRequest(const string &ip, const std::string &callername) //new thread
+void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string callername) //new thread
 {
-    cout << "try to call callcaller: " << callername << " " << ip << endl;
-    mContext = std::unique_ptr<ClientContext>(new ClientContext); //you cannot reuse this object between calls
+    std::cout << "try to call callcaller: " << callername << " " << ip << std::endl;
     std::shared_ptr<Channel> channel = grpc::CreateChannel(
                 ip,
                 grpc::InsecureChannelCredentials()
@@ -43,13 +47,14 @@ void secure_voice_call::PeerToPeer::sendCallRequest(const string &ip, const std:
     CallResponse response;
 
     request.set_callername(callername);
-    mClientStream = mstub->HandShake(mContext.get());
+    ClientContext mContext;
+    mClientStream = mstub->HandShake(&mContext);
     mClientStream->Write(request);
     mClientStream->Read(&response);
     if(response.issuccessful()){
         mClientState->setState(QMLClientState::ClientStates::InConversation);
         mIsInConversation = true;
-        cout << "Client_ClientSide: response is successful" << endl;
+        std::cout << "Client_ClientSide: response is successful" << std::endl;
         std::thread tRead([this](){
             clientReadVoice();
         });
@@ -58,13 +63,15 @@ void secure_voice_call::PeerToPeer::sendCallRequest(const string &ip, const std:
         });
         tRead.join();
         tWrite.join();
-        cout << "Client_ClientSide HandShake thread joins has been reached" << endl;
+        std::cout << "Client_ClientSide HandShake thread joins has been reached" << std::endl;
     }else{
         mClientStream->WritesDone();
         mClientStream->Finish();
     }
     mClientState->setState(QMLClientState::ClientStates::Online);
 }
+
+
 
 grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *context, ::grpc::ServerReaderWriter<secure_voice_call::CallResponse, secure_voice_call::CallRequest> *stream)
 {
@@ -76,7 +83,7 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         stream->Write(response);
         return Status::CANCELLED;
     } else {
-        cout << "ServerSide: ClientStates::IncomingCall: " << endl;
+        std::cout << "ServerSide: ClientStates::IncomingCall: " << std::endl;
         mClientState->setState(QMLClientState::ClientStates::IncomingCall);
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -87,7 +94,7 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         response.set_issuccessful(true); //set flag isInConversation
         stream->Write(response);
         mIsInConversation = true;
-        cout << "ServerSide: QMLClientState::ClientStates::InConversation: " << endl;
+        std::cout << "ServerSide: QMLClientState::ClientStates::InConversation: " << std::endl;
         mClientState->setState(QMLClientState::ClientStates::InConversation);
         std::thread tRead([this, stream](){
             serverReadVoice(stream);
@@ -97,7 +104,7 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         });
         tRead.join();
         tWrite.join();
-        cout << "Client_ServerSide HandShake thread joins reached" << endl;
+        std::cout << "Client_ServerSide HandShake thread joins reached" << std::endl;
     }else {
         response.set_issuccessful(false);
         stream->Write(response);
@@ -112,7 +119,7 @@ void secure_voice_call::PeerToPeer::clientReadVoice()
     //stub
     CallResponse response;
     while (mClientStream->Read(&response) && mIsInConversation) {
-        cout << "Client_ClientSide get response: " << response.audiobytes() << endl;
+        std::cout << "Client_ClientSide get response: " << response.audiobytes() << std::endl;
         //do something with request.audiobytes
     }
     mIsInConversation = false;
@@ -135,7 +142,7 @@ void secure_voice_call::PeerToPeer::serverReadVoice(ServerReaderWriter<CallRespo
     //stub
     CallRequest request;
     while (stream->Read(&request) && mIsInConversation) {
-        cout << "Client_ServerSide get request: " << request.audiobytes() << endl;
+        std::cout << "Client_ServerSide get request: " << request.audiobytes() << std::endl;
         //do something with request.audiobytes
     }
     mIsInConversation = false;
@@ -153,11 +160,11 @@ void secure_voice_call::PeerToPeer::serverWriteVoice(ServerReaderWriter<CallResp
     mIsInConversation = false;
     //--------------------------------------------------
     //audio record code
-//    CallResponse response;
-//    response.set_audiobytes(11111);
-//    while (true) {
-//        if(!stream->Write(response)){
-//            break;
-//        }
-//    }
+    //    CallResponse response;
+    //    response.set_audiobytes(11111);
+    //    while (true) {
+    //        if(!stream->Write(response)){
+    //            break;
+    //        }
+    //    }
 }

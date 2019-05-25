@@ -29,7 +29,7 @@ namespace secure_voice_call {
         PeerToPeer();
 
         void declineCall();
-        void sendCallRequest(const std::string &ip, const std::string &callername);
+        void sendCallRequest(std::string ip, std::string callername);
         // Service interface
     public:
         grpc::Status HandShake(grpc::ServerContext *context, ::grpc::ServerReaderWriter<CallResponse, CallRequest> *stream) override;
@@ -45,7 +45,6 @@ namespace secure_voice_call {
         std::string mCallerName;
         std::unique_ptr<ClientReaderWriter<CallRequest, CallResponse>> mClientStream;
         std::unique_ptr<CallGreeter::Stub> mstub;
-        std::unique_ptr<ClientContext> mContext;
         std::thread mServerThread;
         QMLClientState* mClientState;
     };

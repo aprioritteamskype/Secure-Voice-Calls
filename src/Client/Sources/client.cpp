@@ -129,8 +129,15 @@ void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
     }
     QString qstrUserip = QString::fromStdString(response.userip());
     secure_voice_call::changePort(qstrUserip, 5002);
-    std::thread callThread([this, &qstrUserip, &username](){
-        mPeerToPeer.sendCallRequest(qstrUserip.toStdString(), username.toStdString());
+    std::thread callThread([this, qstrUserip, username](){
+        try
+        {
+            mPeerToPeer.sendCallRequest(qstrUserip.toStdString(), username.toStdString());
+        }
+        catch (const std::exception& ex)
+        {
+            std::cout << "error " << ex.what() << std::endl;
+        }
     });
     callThread.detach();
 }
