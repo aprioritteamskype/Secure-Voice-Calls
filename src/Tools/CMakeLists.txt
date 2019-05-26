@@ -21,6 +21,3 @@ add_library(${PROJECT_NAME}_lib STATIC ${CPPSOURCES} ${CPPHEADERS})
 add_library(SVC::tools ALIAS ${PROJECT_NAME}_lib)
 target_include_directories(${PROJECT_NAME}_lib PUBLIC "${PROJECT_SOURCE_DIR}/Headers")
 target_link_libraries(${PROJECT_NAME}_lib Qt5::Core)
-
-#add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS})
-#target_link_libraries(${PROJECT_NAME} SVC::tools)

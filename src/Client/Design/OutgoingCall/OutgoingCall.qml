@@ -34,14 +34,14 @@ Item {
                 id: declineArea
                 anchors.fill: parent
                 hoverEnabled: true
+                onClicked: {
+                    console.log("nevatest decline outgoing call pressed");
+                    client.finishPeerToPeerOutgoingCall();
+                }
             }
         }
         width: 100
         height: 60
         text: "cancel call"
-        onClicked: {
-            console.log("nevatest decline pressed");
-            client.declineCall();
-        }
     }
 }

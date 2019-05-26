@@ -2,9 +2,8 @@
 #include <iostream> //FIXME
 #include <memory>
 #include <chrono>
-
-
-using namespace std;
+#include <QEventLoop>
+#include <QTimer>
 
 secure_voice_call::PeerToPeer::PeerToPeer(int p2pServerSidePort)
     : QObject (nullptr),
@@ -47,10 +46,17 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
     CallResponse response;
 
     request.set_callername(callername);
-    ClientContext mContext;
-    mClientStream = mstub->HandShake(&mContext);
+    ClientContext context;
+    mClientStream = mstub->HandShake(&context);
     mClientStream->Write(request);
-    mClientStream->Read(&response);
+
+
+    if(!raceOutgoingCall(response, context)){
+        std::cout << "!raceOutgoingCall " << std::endl;
+        mClientState->setState(QMLClientState::ClientStates::Online);
+        return;
+    }
+
     if(response.issuccessful()){
         mClientState->setState(QMLClientState::ClientStates::InConversation);
         mIsInConversation = true;
@@ -63,6 +69,8 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
         });
         tRead.join();
         tWrite.join();
+        mClientStream->WritesDone();
+        mClientStream->Finish();
         std::cout << "Client_ClientSide HandShake thread joins has been reached" << std::endl;
     }else{
         mClientStream->WritesDone();
@@ -82,16 +90,13 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         response.set_issuccessful(false);
         stream->Write(response);
         return Status::CANCELLED;
-    } else {
-        std::cout << "ServerSide: ClientStates::IncomingCall: " << std::endl;
-        mClientState->setState(QMLClientState::ClientStates::IncomingCall);
-        std::this_thread::sleep_for(std::chrono::seconds(10));
-
     }
+    std::cout << "ServerSide: ClientStates::IncomingCall: " << std::endl;
+    mClientState->setState(QMLClientState::ClientStates::IncomingCall);
 
     stream->Read(&request);
-    if(true){ //if name has same ip as in server -> if callername = [Client::sendIdByUserNameRequest] FIXME
-        response.set_issuccessful(true); //set flag isInConversation
+    if(raceIncomingCall(*context)){
+        response.set_issuccessful(true);
         stream->Write(response);
         mIsInConversation = true;
         std::cout << "ServerSide: QMLClientState::ClientStates::InConversation: " << std::endl;
@@ -167,4 +172,101 @@ void secure_voice_call::PeerToPeer::serverWriteVoice(ServerReaderWriter<CallResp
     //            break;
     //        }
     //    }
+}
+
+//what earlier, user on the other side take a call or user on this side cancel
+bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResponse &response, ClientContext& context)
+{
+    OutgoingCallStates outgoingState = OutgoingCallStates::NotFinished;
+    bool success = false;
+    std::thread readThread([this, &response](){
+        mClientStream->Read(&response);
+        emit finishPeerToPeerOutgoingCall(OutgoingCallStates::FinishedByReading);
+    });
+    //[timer]-----------------------------------------------------------------------------
+    std::thread timerThread([this](){
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+        emit finishPeerToPeerOutgoingCall(OutgoingCallStates::FinishedByTimer);
+    });
+    timerThread.detach();
+    //[timer]-----------------------------------------------------------------------------
+    QEventLoop loop;
+    std::shared_ptr<QMetaObject::Connection> sh(new QMetaObject::Connection(),
+                                           [](QMetaObject::Connection *ptr){
+        QObject::disconnect(*ptr);
+        delete ptr;
+    });
+    *sh = QObject::connect(this, &PeerToPeer::finishPeerToPeerOutgoingCall,
+                           [&success, &loop, &outgoingState, &context](OutgoingCallStates st){
+        if(outgoingState == OutgoingCallStates::NotFinished) {
+            outgoingState = st;
+            switch (outgoingState) {
+                case OutgoingCallStates::FinishedByReading:
+                {
+                    std::cout << "OutgoingCallStates::FinishedByReading" << std::endl;
+                    success = true;
+                    break;
+                }
+                case OutgoingCallStates::FinishedByCancel:
+                {
+                    std::cout << "OutgoingCallStates::FinishedByCancel" << std::endl;
+                    context.TryCancel();
+                    break;
+                }
+                case OutgoingCallStates::FinishedByTimer:
+                {
+                    std::cout << "OutgoingCallStates::FinishedByTimer" << std::endl;
+                    context.TryCancel();
+                    break;
+                }
+            }
+            loop.exit();
+        }
+    });
+
+    loop.exec();
+    readThread.join();
+    return success;
+}
+
+//what earlier, user on the other side cancels a call or user on this side accepts\declines
+bool secure_voice_call::PeerToPeer::raceIncomingCall(ServerContext& context)
+{
+    bool success = false;
+    std::atomic_bool isPeerToPeerIncomingCallFinished(false);
+    //[timer]-----------------------------------------------------------------------------
+    std::thread timerThread([this](){
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+        emit finishPeerToPeerIncomingCall(false);
+    });
+    timerThread.detach();
+    //[timer]-----------------------------------------------------------------------------
+    QEventLoop loop;
+    //[ClientSideCanceled connection]-----------------------------------------------------
+    std::thread checkCanceledThread([this, &context, &isPeerToPeerIncomingCallFinished](){
+        while(!context.IsCancelled() && !isPeerToPeerIncomingCallFinished){
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        }
+        finishPeerToPeerIncomingCall(false);
+    });
+    //[ClientSideCanceled connection]-----------------------------------------------------
+    std::shared_ptr<QMetaObject::Connection> sh(new QMetaObject::Connection(),
+                                           [](QMetaObject::Connection *ptr){
+        QObject::disconnect(*ptr);
+        delete ptr;
+    });
+
+    *sh = QObject::connect(this, &PeerToPeer::finishPeerToPeerIncomingCall,
+                           [&loop, &success, &isPeerToPeerIncomingCallFinished]
+                           (bool isSuccessed){
+        if (loop.isRunning()){
+            success = isSuccessed;
+            isPeerToPeerIncomingCallFinished = true;
+            loop.exit();
+        }
+    }
+    );
+    loop.exec();
+    checkCanceledThread.join();
+    return success;
 }

@@ -23,8 +23,17 @@ using secure_voice_call::CallRequest;
 using secure_voice_call::CallResponse;
 
 namespace secure_voice_call {
-    class PeerToPeer final : public CallGreeter::Service, public QObject
+    class PeerToPeer final : public QObject, public CallGreeter::Service
     {
+        Q_OBJECT
+    public:
+        enum OutgoingCallStates{
+            NotFinished,
+            FinishedByReading,
+            FinishedByTimer,
+            FinishedByCancel
+        };
+        Q_ENUM(OutgoingCallStates)
     public:
         PeerToPeer(int p2pServerSidePort = 5001);
 
@@ -39,6 +48,11 @@ namespace secure_voice_call {
         void clientWriteVoice();
         void serverReadVoice(ServerReaderWriter<secure_voice_call::CallResponse, secure_voice_call::CallRequest> *stream);
         void serverWriteVoice(ServerReaderWriter<secure_voice_call::CallResponse, secure_voice_call::CallRequest> *stream);
+        bool raceOutgoingCall(CallResponse& response, ClientContext& context);
+        bool raceIncomingCall(ServerContext& context);
+    signals:
+        void finishPeerToPeerOutgoingCall(OutgoingCallStates st);
+        void finishPeerToPeerIncomingCall(bool);
     private:
         std::atomic<bool> mIsInConversation{false};
         std::string mClientServerSideAddress;

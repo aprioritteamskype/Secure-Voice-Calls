@@ -76,6 +76,16 @@ void secure_voice_call::Client::declineCall()
     mPeerToPeer.declineCall();
 }
 
+void secure_voice_call::Client::finishPeerToPeerOutgoingCall()
+{
+    emit mPeerToPeer.finishPeerToPeerOutgoingCall(PeerToPeer::OutgoingCallStates::FinishedByCancel);
+}
+
+void secure_voice_call::Client::finishPeerToPeerIncomingCall(bool success)
+{
+    emit mPeerToPeer.finishPeerToPeerIncomingCall(success);
+}
+
 void secure_voice_call::Client::sendClientsOnlineRequest()
 {
     if(!mHasConnection)

@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
     qRegisterMetaType<secure_voice_call::QMLClientState::ClientStates>("ClientStates");
+    qRegisterMetaType<secure_voice_call::PeerToPeer::OutgoingCallStates>("OutgoingCallStates");
 
     secure_voice_call::CommandArgsParser parser(argc, argv);
     std::cout << "parser.serverIp() " << parser.serverIp() << std::endl;

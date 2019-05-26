@@ -48,15 +48,16 @@ Item {
                         id: acceptArea
                         anchors.fill: parent
                         hoverEnabled: true
+                        onClicked: {
+                            console.log("accept pressed")
+                            client.finishPeerToPeerIncomingCall(true);
+                        }
                     }
                 }
 
                 width: 100
                 height: 60
                 text: "accept"
-                onClicked: {
-                    console.log("accept pressed")
-                }
             }
             RoundButton {
                 radius: 100
@@ -80,6 +81,7 @@ Item {
                         hoverEnabled: true
                         onClicked: {
                             console.log("nevatest decline pressed");
+                            client.finishPeerToPeerIncomingCall(false);
                         }
                     }
                 }

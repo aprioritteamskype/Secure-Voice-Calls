@@ -27,8 +27,9 @@ namespace secure_voice_call {
         Q_INVOKABLE void sendClientsOnlineRequest();
         Q_INVOKABLE void sendIdByUserNameRequest(const QString &username);
         Q_INVOKABLE void declineCall();
+        Q_INVOKABLE void finishPeerToPeerOutgoingCall();
+        Q_INVOKABLE void finishPeerToPeerIncomingCall(bool success);
         void addClientToModel(const AuthorizationResponse &response) const;
-    private:
     private:
         std::string mServerAddress;
         std::string mname;
