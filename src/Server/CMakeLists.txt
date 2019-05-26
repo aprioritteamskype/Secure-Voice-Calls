@@ -5,8 +5,17 @@ project(Server)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+#conan_basic_setup()
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+   file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/v0.8/conan.cmake"
+                 "${CMAKE_BINARY_DIR}/conan.cmake")
+endif()
+
+include(${CMAKE_BINARY_DIR}/conan.cmake)
+conan_cmake_run(REQUIRES grpc/1.20.0@inexorgame/stable
+                BASIC_SETUP Client
+                BUILD missing)
 
 find_package(Qt5Core REQUIRED)
 
@@ -59,4 +68,4 @@ set(CPPHEADERS "server.h")
 
 add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS} ${hw_proto_srcs} ${hw_grpc_srcs})
 
-target_link_libraries(${PROJECT_NAME} Qt5::Core ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+target_link_libraries(${PROJECT_NAME} Qt5::Core ${CONAN_LIBS} SVC::tools)

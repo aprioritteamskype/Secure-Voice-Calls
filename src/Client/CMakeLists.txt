@@ -8,8 +8,18 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+
+#conan_basic_setup()
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+   file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/v0.8/conan.cmake"
+                 "${CMAKE_BINARY_DIR}/conan.cmake")
+endif()
+
+include(${CMAKE_BINARY_DIR}/conan.cmake)
+conan_cmake_run(REQUIRES grpc/1.20.0@inexorgame/stable
+                BASIC_SETUP Client
+                BUILD missing)
 
 find_package(Qt5 COMPONENTS Core Quick REQUIRED)
 
@@ -59,10 +69,15 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Headers")
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-set(CPPSOURCES "Sources/main.cpp" "Sources/client.cpp" "Sources/qmlclientstate.cpp"
-    "Sources/qmlclientsonlinemodel.cpp" "Sources/utils.cpp")
-set(CPPHEADERS "Headers/client.h" "Headers/qmlclientstate.h"
-    "Headers/qmlclientsonlinemodel.h" "Headers/utils.h")
+set(CPPSOURCES "Sources/main.cpp"
+    "Sources/client.cpp"
+    "Sources/qmlclientstate.cpp"
+    "Sources/qmlclientsonlinemodel.cpp"
+    "Sources/peertopeer.cpp")
+set(CPPHEADERS "Headers/client.h"
+    "Headers/qmlclientstate.h"
+    "Headers/qmlclientsonlinemodel.h"
+    "Headers/peertopeer.h")
 
 add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS} "qml.qrc" ${hw_proto_srcs} ${hw_grpc_srcs})
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick ${CONAN_LIBS} SVC::tools)

@@ -1,6 +1,7 @@
 import QtQuick 2.9
 import QtQuick.Window 2.2
-import com.securevoivecaller 1.0
+import QtQuick.Controls 2.5
+import com.securevoicecaller 1.0
 
 Window {
     visible: true
@@ -10,53 +11,42 @@ Window {
 
     Background {
         id: root
-        ClientsList {
-            id: listViwer
-            x: 20
-            y: 20
-            model: onlineClientsModel
-            radius: 20
-            width: parent.width / 3
-            height: parent.height - 50
-            visible: root.state == "online"
-        }
-        RefreshButton {
-            width: 100
-            height: 70
-            anchors.top: root.top
-            anchors.horizontalCenter: root.horizontalCenter
-            visible: root.state == "online"
+
+        Loader {
+            id: loaderOnlineComponent
+            anchors.fill: parent
+            source: "Online/Online.qml"
+            active: globClientState.clientState === QMLClientState.Online
         }
 
-        Text {
-            id: usersOnlineLabel
-            text: "users online"
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            anchors { left: listViwer.left; right: listViwer.right; bottom: listViwer.top }
-            visible: root.state == "online"
-        }
-
-        Authotization {
+        Loader {
+            id: loaderAuthorizationComponent
             anchors.centerIn: parent
             width: parent.width / 2
             height: parent.height / 2
-            visible: root.state == "authorization"
+            source: "Authorization/Authorization.qml"
+            active: globClientState.clientState === QMLClientState.Authorization
         }
 
-        states : [
-            State {
-                name: "authorization"
-                when: globClientState.clientState === QMLClientState.Authorization
-            },
-            State {
-                name: "online"
-                when: globClientState.clientState === QMLClientState.Online
-            },
-            State {
-                name: "inconversation"
-                when: globClientState.clientState === QMLClientState.InConversation
-            }
-        ]
+        Loader {
+            id: loaderOutgoingCallComponent
+            anchors.centerIn: parent
+            source: "OutgoingCall/OutgoingCall.qml"
+            active: globClientState.clientState === QMLClientState.OutgoingCall
+        }
+
+        Loader {
+            id: loaderIncomingCallComponent
+            anchors.centerIn: parent
+            source: "IncomingCall/IncomingCall.qml"
+            active: globClientState.clientState === QMLClientState.IncomingCall
+        }
+
+        Loader {
+            id: loaderInConversationComponent
+            anchors.fill: parent
+            source: "InConversation/InConversation.qml"
+            active: globClientState.clientState === QMLClientState.InConversation
+        }
     }
 }

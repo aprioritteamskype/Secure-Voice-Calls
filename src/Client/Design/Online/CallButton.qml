@@ -18,7 +18,7 @@ Rectangle {
 
     Text {
         id: name
-        text: qsTr("Refresh")
+        text: qsTr("Call")
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         anchors.fill: parent
@@ -28,7 +28,7 @@ Rectangle {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            globClientState.refreshClientList()
+            client.sendIdByUserNameRequest(model.username)
         }
         hoverEnabled: true
     }

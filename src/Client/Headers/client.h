@@ -1,9 +1,9 @@
-#ifndef CLIENT_H
-#define CLIENT_H
+#pragma once
 #include <grpcpp/grpcpp.h>
 #include <iostream>
 #include "client-server.grpc.pb.h"
 #include "qmlclientsonlinemodel.h"
+#include "peertopeer.h"
 
 using secure_voice_call::Greeter;
 using secure_voice_call::AuthorizationRequest;
@@ -15,25 +15,32 @@ using grpc::Status;
 using grpc::ClientReaderWriter;
 
 namespace secure_voice_call {
-class Client : public QObject {
-public:
-    Client(secure_voice_call::QMLClientsOnlineModel &model);// : mstub(Greeter::NewStub(channel)) {}
+    class Client : public QObject {
+        Q_OBJECT
+    public:
+        Client(secure_voice_call::QMLClientsOnlineModel &model,
+               int p2pClientSidePort = 5001,
+               int p2pServerSidePort = 5001,
+               const std::string& serverAddress = "0.0.0.0:5000");
 
-   grpc::Status sendAuthorizationRequest(const QString &name);
-   void addClientToModel(const AuthorizationResponse &response) const;
-   void sendClientsOnlineRequest();
-   void sendIdByUserNameRequest(const QString &username);
-private:
-    secure_voice_call::QMLClientsOnlineModel *mModel;
-    std::string mServerAddress;
-    std::unique_ptr<Greeter::Stub> mstub;
-    std::unique_ptr<ClientReaderWriter<AuthorizationRequest, AuthorizationResponse>> mstream;
-    AuthorizationRequest mClientsOnlineRequest; //clientsonline request
-    AuthorizationRequest mGetIpByNameRequest;
-    std::string mname;
-    std::unique_ptr<ClientContext> mContext;
-    bool mHasConnection = false;
-};
+        Q_INVOKABLE void sendAuthorizationRequest(const QString &name);
+        Q_INVOKABLE void sendClientsOnlineRequest();
+        Q_INVOKABLE void sendIdByUserNameRequest(const QString &username);
+        Q_INVOKABLE void declineCall();
+        Q_INVOKABLE void finishPeerToPeerOutgoingCall();
+        Q_INVOKABLE void finishPeerToPeerIncomingCall(bool success);
+        void addClientToModel(const AuthorizationResponse &response) const;
+    private:
+        std::string mServerAddress;
+        std::string mname;
+        bool mHasConnection = false;
+        int mP2PClientSidePort;
+        std::unique_ptr<Greeter::Stub> mstub;
+        std::unique_ptr<ClientReaderWriter<AuthorizationRequest, AuthorizationResponse>> mstream;
+        std::unique_ptr<ClientContext> mContext;
+        AuthorizationRequest mClientsOnlineRequest;
+        AuthorizationRequest mGetIpByNameRequest;
+        secure_voice_call::QMLClientsOnlineModel *mModel;
+        secure_voice_call::PeerToPeer mPeerToPeer;
+    };
 }
-
-#endif // CLIENT_H
