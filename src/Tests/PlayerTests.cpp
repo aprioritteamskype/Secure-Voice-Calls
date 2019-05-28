@@ -47,4 +47,4 @@ void PlayerTest::testBytesToPushOverflow()
 }
 
 
-//QTEST_MAIN(PlayerTest)
+QTEST_MAIN(PlayerTest)

@@ -1,6 +1,7 @@
-import QtQuick 2.7
+import QtQuick 2.12
 
 Rectangle {
+    anchors.centerIn: parent
     radius: 70
     border.width: 6
     border.color: "#7f1d8b"
@@ -61,7 +62,7 @@ Rectangle {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
-                        globClientState.tryAuthorizate(enterNameDelegate.enteredText);
+                        client.sendAuthorizationRequest(enterNameDelegate.enteredText);
                     }
                 }
                 Text {

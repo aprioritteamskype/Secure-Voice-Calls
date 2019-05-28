@@ -7,6 +7,7 @@
 #include "qmlclientstate.h"
 #include "qmlclientsonlinemodel.h"
 #include "peertopeer.h"
+#include "commandArgsParser.h"
 
 int main(int argc, char *argv[])
 {
@@ -14,22 +15,25 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
     qRegisterMetaType<secure_voice_call::QMLClientState::ClientStates>("ClientStates");
-//    std::thread t([peerToPeer](){
-//        peerToPeer->runServer();
-//    });
+    qRegisterMetaType<secure_voice_call::PeerToPeer::OutgoingCallStates>("OutgoingCallStates");
 
-//    std::thread t2([peerToPeer2](){
-//        peerToPeer2->sendCallRequest("0.0.0.0:5001", "ivan");
-//    });
-
+    secure_voice_call::CommandArgsParser parser(argc, argv);
+    std::cout << "parser.serverIp() " << parser.serverIp() << std::endl;
+    std::cout << "parser.serverPort() " << parser.serverPort() << std::endl;
+    std::cout << "parser.peerToPeerClientSidePort() " << parser.peerToPeerClientSidePort() << std::endl;
+    std::cout << "parser.peerToPeerServerSidePort() " << parser.peerToPeerServerSidePort() << std::endl;
     secure_voice_call::QMLClientsOnlineModel *model = new secure_voice_call::QMLClientsOnlineModel();
-    secure_voice_call::Client *client = new secure_voice_call::Client(*model);
+    secure_voice_call::Client *client = new secure_voice_call::Client(*model,
+                                                                      parser.peerToPeerClientSidePort(),
+                                                                      parser.peerToPeerServerSidePort(),
+                                                                      parser.serverIp());
 
     QQmlApplicationEngine engine;
     qmlRegisterUncreatableType<secure_voice_call::QMLClientState>("com.securevoicecaller", 1, 0, "QMLClientState",
                                                "Uncreatable type QMLClientState");
     engine.rootContext()->setContextProperty("globClientState", &secure_voice_call::QMLClientState::getInstance());
     engine.rootContext()->setContextProperty("onlineClientsModel", model);
+    engine.rootContext()->setContextProperty("client", client);
 
     engine.load(QUrl(QStringLiteral("qrc:/Design/main.qml")));
     if (engine.rootObjects().isEmpty())

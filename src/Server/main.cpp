@@ -2,21 +2,24 @@
 #include <iostream>
 #include <thread>
 #include "server.h"
+#include "commandArgsParser.h"
 
-void runServer();
+void runServer(int port = 5000);
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    std::thread serverThread(runServer);
+    secure_voice_call::CommandArgsParser parser(argc,argv);
+
+    std::thread serverThread(runServer, parser.serverPort());
     serverThread.join();
 
     return a.exec();
 }
 
-void runServer()
+void runServer(int port)
 {
-    std::string address("0.0.0.0:5000");
+    std::string address("0.0.0.0:" + std::to_string(port));
     secure_voice_call::Server service;
 
     ServerBuilder builder;

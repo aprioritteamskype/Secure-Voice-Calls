@@ -49,4 +49,4 @@ void RecorderTest::testBytesToGetOverflow()
 //    player.readData(outputData,100);
 //    QCOMPARE(outputData,"0000000000000000");
 }
-QTEST_MAIN(RecorderTest)
+//QTEST_MAIN(RecorderTest)

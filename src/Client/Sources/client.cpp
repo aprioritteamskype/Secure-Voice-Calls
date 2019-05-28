@@ -4,10 +4,15 @@
 #include "utils.h"
 #include <iostream> //FIXME extra include
 
-secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model)
+secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model,
+                                  int p2pClientSidePort,
+                                  int p2pServerSidePort,
+                                  const std::string& serverAddress)
     : QObject (nullptr),
-      mServerAddress("0.0.0.0:5000"),
-      mModel(&model)
+      mServerAddress(serverAddress),
+      mP2PClientSidePort(p2pClientSidePort),
+      mModel(&model),
+      mPeerToPeer(p2pServerSidePort)
 {
     mClientsOnlineRequest.set_requesttype(secure_voice_call::TypeMessage::GetClientsOnline);
     mGetIpByNameRequest.set_requesttype(secure_voice_call::TypeMessage::GetIpByUserName);
@@ -17,17 +22,9 @@ secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &mode
                 grpc::InsecureChannelCredentials()
                 );
     mstub = Greeter::NewStub(channel);
-
-    using secure_voice_call::QMLClientState;
-    connect(&QMLClientState::getInstance(), &QMLClientState::tryAuthorizate, //TODO replace connections to object calls in qml
-            this, &Client::sendAuthorizationRequest);
-    connect(&QMLClientState::getInstance(), &QMLClientState::refreshClientList,
-            this, &Client::sendClientsOnlineRequest);
-    connect(&QMLClientState::getInstance(), &QMLClientState::getUserIdByName,
-            this, &Client::sendIdByUserNameRequest);
 }
 
-grpc::Status secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
+void secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
 {
     Status status;
     AuthorizationRequest request;
@@ -40,26 +37,27 @@ grpc::Status secure_voice_call::Client::sendAuthorizationRequest(const QString &
     AuthorizationResponse response;
     mstream = mstub->Authorization(mContext.get());
 
-    if (!mstream->Write(request)) {
+    if (!mstream->Write(request) || !mstream->Read(&response)) {
         mHasConnection = false;
         mstream->WritesDone();
-        return  mstream->Finish();
+        status =  mstream->Finish();
+        std::cout << status.error_message() << std::endl;
+        return;
     }
 
-    if (!mstream->Read(&response)) {
-        mstream->WritesDone();
+    if (response.issuccessful()
+            && response.responsetype() == secure_voice_call::TypeMessage::Authorization){
+        mHasConnection = true;
+        addClientToModel(response);
+        using secure_voice_call::QMLClientState;
+        QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
+    } else {
         mHasConnection = false;
-        return mstream->Finish();
+        mstream->WritesDone();
+        status =  mstream->Finish();
     }
-
-        if (response.issuccessful()
-                && response.responsetype() == secure_voice_call::TypeMessage::Authorization){
-            mHasConnection = true;
-            addClientToModel(response);
-            using secure_voice_call::QMLClientState;
-            QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
-        }
-        return status;
+    if(!status.ok())
+        std::cout << "row 63 client.cpp bad authorization" << std::endl;
 }
 
 void secure_voice_call::Client::addClientToModel(const secure_voice_call::AuthorizationResponse &response) const
@@ -71,6 +69,21 @@ void secure_voice_call::Client::addClientToModel(const secure_voice_call::Author
         }
     }
     mModel->setCLients(clients);
+}
+
+void secure_voice_call::Client::declineCall()
+{
+    mPeerToPeer.declineCall();
+}
+
+void secure_voice_call::Client::finishPeerToPeerOutgoingCall()
+{
+    emit mPeerToPeer.finishPeerToPeerOutgoingCall(PeerToPeer::OutgoingCallStates::FinishedByCancel);
+}
+
+void secure_voice_call::Client::finishPeerToPeerIncomingCall(bool success)
+{
+    emit mPeerToPeer.finishPeerToPeerIncomingCall(success);
 }
 
 void secure_voice_call::Client::sendClientsOnlineRequest()
@@ -130,9 +143,16 @@ void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
         return;
     }
     QString qstrUserip = QString::fromStdString(response.userip());
-    secure_voice_call::changePort(qstrUserip, 5001);
-    std::thread callThread([this, qstrUserip, &username](){
+    secure_voice_call::changePort(qstrUserip, mP2PClientSidePort);
+    std::thread callThread([this, qstrUserip, username](){
+        try
+        {
         mPeerToPeer.sendCallRequest(qstrUserip.toStdString(), username.toStdString());
+        }
+        catch (const std::exception& ex)
+        {
+            std::cout << "error " << ex.what() << std::endl;
+        }
     });
     callThread.detach();
 }
