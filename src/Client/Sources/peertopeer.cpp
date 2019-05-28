@@ -2,14 +2,13 @@
 #include <iostream> //FIXME
 #include <memory>
 #include <chrono>
-#define PACKET_SIZE 16
 #include <QEventLoop>
 #include <QTimer>
-using namespace std;
+#include <audiomodule.h>
+
 secure_voice_call::PeerToPeer::PeerToPeer(int p2pServerSidePort)
     : QObject (nullptr),
       mClientServerSideAddress("0.0.0.0:" + std::to_string(p2pServerSidePort))
-#include <audiomodule.h>
 {
 
     mAudioModule.reset(new AudioModule());
@@ -26,25 +25,6 @@ void secure_voice_call::PeerToPeer::declineCall()
 
 void secure_voice_call::PeerToPeer::runServer()
 {
-    //    std::string key;
-    //    std::string cert;
-    //    std::string root;
-
-    //    read ( "/home/max/test_voice/src/Server/secur/server.crt", cert );
-    //    read ( "/home/max/test_voice/src/Server/secur/server.key", key );
-    //    read ( "/home/max/test_voice/src/Server/secur/ca.crt", root );
-
-    //    grpc::SslServerCredentialsOptions::PemKeyCertPair pkcp;
-    //    pkcp.private_key = key;
-    //    pkcp.cert_chain = cert;
-
-    //    grpc::SslServerCredentialsOptions ssl_opts;
-    //    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
-    //    ssl_opts.pem_root_certs=root;
-
-    //    std::shared_ptr<grpc::ServerCredentials> creds ;
-    //    creds = grpc::SslServerCredentials(ssl_opts);
-    //
     ServerBuilder builder;
 
     builder.AddListeningPort(mClientServerSideAddress, grpc::InsecureServerCredentials()); //FIXME
@@ -65,7 +45,6 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
                 grpc::InsecureChannelCredentials() //FIXME
                 //grpc::SslCredentials(opts)
                 );
-    cout << "mstub next " << endl;
     mstub = CallGreeter::NewStub(channel);
     CallRequest request;
     CallResponse response;
@@ -86,19 +65,18 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
         mClientState->setState(QMLClientState::ClientStates::InConversation);
         mIsInConversation = true;
         std::cout << "Client_ClientSide: response is successful" << std::endl;
-        std::thread tRead([this](){
-            clientReadVoice();
+        std::thread tRead([this, &context](){
+            clientReadVoiceThread(context);
         });
-        std::thread tWrite([this](){
-            clientWriteVoice();
+        std::thread tWrite([this, &context](){
+            clientWriteVoiceThread(context);
         });
         tRead.join();
         tWrite.join();
-        mClientStream->WritesDone();
+        mIsCanceledStream = false;
         mClientStream->Finish();
         std::cout << "Client_ClientSide HandShake thread joins has been reached" << std::endl;
     }else{
-         cout << "WOW WTF? " << endl;
         mClientStream->WritesDone();
         mClientStream->Finish();
     }
@@ -128,11 +106,11 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         mIsInConversation = true;
         std::cout << "ServerSide: QMLClientState::ClientStates::InConversation: " << std::endl;
         mClientState->setState(QMLClientState::ClientStates::InConversation);
-        std::thread tRead([this, stream](){
-            serverReadVoice(stream);
+        std::thread tRead([this, stream, &context](){
+            serverReadVoiceThread(stream, *context);
         });
-        std::thread tWrite([this, stream](){
-            serverWriteVoice(stream);
+        std::thread tWrite([this, stream, &context](){
+            serverWriteVoiceThread(stream, *context);
         });
         tRead.join();
         tWrite.join();
@@ -146,7 +124,7 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
     return Status::OK;
 }
 
-void secure_voice_call::PeerToPeer::clientReadVoice()
+void secure_voice_call::PeerToPeer::clientReadVoiceThread(grpc::ClientContext& context)
 {
     CallResponse response;
     mAudioModule->startPlayingAudio();
@@ -155,11 +133,14 @@ void secure_voice_call::PeerToPeer::clientReadVoice()
         mAudioModule->readVoice(response);
     }
     mAudioModule->stopPlayingAudio();
-    std::cout<<"stopPlayingAudio"<<std::endl;
+    if(!mIsCanceledStream){
+        mIsCanceledStream = true;
+        context.TryCancel();
+    }
     mIsInConversation = false;
 }
 
-void secure_voice_call::PeerToPeer::clientWriteVoice()
+void secure_voice_call::PeerToPeer::clientWriteVoiceThread(grpc::ClientContext& context)
 {
     mAudioModule->startRecordingAudio();
     std::cout<<"startRecordingAudio"<<std::endl;
@@ -177,10 +158,14 @@ void secure_voice_call::PeerToPeer::clientWriteVoice()
     }
     mAudioModule->stopRecordingAudio();
     std::cout<<"stopRecordingAudio"<<std::endl;
+    if(!mIsCanceledStream){
+        mIsCanceledStream = true;
+        context.TryCancel();
+    }
     mIsInConversation = false;
 }
 
-void secure_voice_call::PeerToPeer::serverReadVoice(ServerReaderWriter<CallResponse, CallRequest> *stream)
+void secure_voice_call::PeerToPeer::serverReadVoiceThread(ServerReaderWriter<CallResponse, CallRequest> *stream, grpc::ServerContext& context)
 {
     CallRequest request;
     mAudioModule->startPlayingAudio();
@@ -190,10 +175,13 @@ void secure_voice_call::PeerToPeer::serverReadVoice(ServerReaderWriter<CallRespo
     }
     mAudioModule->stopPlayingAudio();
     std::cout<<"stopPlayingAudio"<<std::endl;
+    if(!context.IsCancelled()){
+        context.TryCancel();
+    }
     mIsInConversation = false;
 }
 
-void secure_voice_call::PeerToPeer::serverWriteVoice(ServerReaderWriter<CallResponse, CallRequest> *stream)
+void secure_voice_call::PeerToPeer::serverWriteVoiceThread(ServerReaderWriter<CallResponse, CallRequest> *stream, grpc::ServerContext& context)
 {
     CallResponse response;
     mAudioModule->startRecordingAudio();
@@ -211,6 +199,9 @@ void secure_voice_call::PeerToPeer::serverWriteVoice(ServerReaderWriter<CallResp
     }
     mAudioModule->stopRecordingAudio();
     std::cout<<"stopRecordingAudio"<<std::endl;
+    if(!context.IsCancelled()){
+        context.TryCancel();
+    }
     mIsInConversation = false;
 }
 
@@ -259,7 +250,10 @@ bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResp
                     context.TryCancel();
                     break;
                 }
-            default: break;
+                default:
+                {
+                    std::cout <<  "unhandled OutgoingCallStates" << std::endl;
+                }
             }
             loop.exit();
         }

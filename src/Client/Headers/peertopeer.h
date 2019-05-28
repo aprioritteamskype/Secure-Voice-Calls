@@ -44,17 +44,20 @@ namespace secure_voice_call {
         grpc::Status HandShake(grpc::ServerContext *context, ::grpc::ServerReaderWriter<CallResponse, CallRequest> *stream) override;
     private:
         void runServer();
-        void clientReadVoice();
-        void clientWriteVoice();
-        void serverReadVoice(ServerReaderWriter<secure_voice_call::CallResponse, secure_voice_call::CallRequest> *stream);
-        void serverWriteVoice(ServerReaderWriter<secure_voice_call::CallResponse, secure_voice_call::CallRequest> *stream);
+        void clientReadVoiceThread(grpc::ClientContext& context);
+        void clientWriteVoiceThread(grpc::ClientContext& context);
+        void serverReadVoiceThread(ServerReaderWriter<secure_voice_call::CallResponse, secure_voice_call::CallRequest> *stream,
+                                   grpc::ServerContext& context);
+        void serverWriteVoiceThread(ServerReaderWriter<secure_voice_call::CallResponse, secure_voice_call::CallRequest> *stream,
+                                    grpc::ServerContext& context);
         bool raceOutgoingCall(CallResponse& response, ClientContext& context);
         bool raceIncomingCall(ServerContext& context);
     signals:
         void finishPeerToPeerOutgoingCall(OutgoingCallStates st);
         void finishPeerToPeerIncomingCall(bool);
     private:
-        std::atomic<bool> mIsInConversation{false};
+        std::atomic_bool mIsInConversation{false};
+        std::atomic_bool mIsCanceledStream{false};
         std::string mClientServerSideAddress;
         std::string mCallerName;
         std::unique_ptr<ClientReaderWriter<CallRequest, CallResponse>> mClientStream;
