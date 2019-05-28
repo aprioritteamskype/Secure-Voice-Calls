@@ -22,7 +22,7 @@ conan_cmake_run(REQUIRES grpc/1.20.0@inexorgame/stable
                 BUILD missing)
 
 find_package(Qt5 COMPONENTS Core Quick REQUIRED)
-
+find_package(Qt5Multimedia REQUIRED)
 #--------------------------------------------------
 # This branch assumes that gRPC and all its dependencies are already installed
 # on this system, so they can be located by find_package().
@@ -43,7 +43,7 @@ find_package(gRPC CONFIG REQUIRED)
 find_package(protoc CONFIG REQUIRED)
 message(STATUS "Using gRPC ${gRPC_VERSION}")
 
-set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++_unsecure)
+set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 
 # Proto file
@@ -65,6 +65,11 @@ add_custom_command(
         "${hw_proto}"
       DEPENDS "${hw_proto}")
 
+ set(TOOLSPATH "../Tools")
+ include_directories("${TOOLSPATH}/recorder")
+ include_directories("${TOOLSPATH}/player")
+ message("paht to tools ${TOOLSPATH}")
+
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Headers")
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
@@ -73,11 +78,17 @@ set(CPPSOURCES "Sources/main.cpp"
     "Sources/client.cpp"
     "Sources/qmlclientstate.cpp"
     "Sources/qmlclientsonlinemodel.cpp"
-    "Sources/peertopeer.cpp")
+    "Sources/peertopeer.cpp"
+    "Sources/audiomodule.cpp"
+    "Sources/audiowriter.cpp"
+    "Sources/audioreader.cpp")
 set(CPPHEADERS "Headers/client.h"
     "Headers/qmlclientstate.h"
     "Headers/qmlclientsonlinemodel.h"
-    "Headers/peertopeer.h")
+    "Headers/peertopeer.h"
+    "Headers/audiomodule.h"
+    "Headers/audiowriter.h"
+    "Headers/audioreader.h")
 
 add_executable(${PROJECT_NAME} ${CPPSOURCES} ${CPPHEADERS} "qml.qrc" ${hw_proto_srcs} ${hw_grpc_srcs})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Quick ${CONAN_LIBS} SVC::tools)
