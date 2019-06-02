@@ -30,6 +30,9 @@ void secure_voice_call::PeerToPeer::runServer()
     builder.AddListeningPort(mClientServerSideAddress, grpc::InsecureServerCredentials()); //FIXME
     //builder.AddListeningPort(mClientServerSideAddress, creds);
     builder.RegisterService(this);
+    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, 2000);
+    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 5000);
+
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
     std::cout << "ClientSide-Server listening on port: " << mClientServerSideAddress << std::endl;
@@ -40,6 +43,7 @@ void secure_voice_call::PeerToPeer::runServer()
 void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string callername) //new thread
 {
     std::cout << "try to call callcaller: " << callername << " " << ip << std::endl;
+    mClientState->setCallerName(QString::fromStdString(callername));
     std::shared_ptr<Channel> channel = grpc::CreateChannel(
                 ip,
                 grpc::InsecureChannelCredentials() //FIXME
@@ -49,7 +53,7 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
     CallRequest request;
     CallResponse response;
 
-    request.set_callername(callername);
+    request.set_callername(mClientState->authorizatedAs().toStdString()); //send your authorizated user name
     ClientContext context;
     mClientStream = mstub->HandShake(&context);
     mClientStream->Write(request);
@@ -97,9 +101,10 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         return Status::CANCELLED;
     }
     std::cout << "ServerSide: ClientStates::IncomingCall: " << std::endl;
-    mClientState->setState(QMLClientState::ClientStates::IncomingCall);
 
     stream->Read(&request);
+    mClientState->setState(QMLClientState::ClientStates::IncomingCall);
+    mClientState->setCallerName(QString::fromStdString(request.callername()));
     if(raceIncomingCall(*context)){
         response.set_issuccessful(true);
         stream->Write(response);

@@ -5,7 +5,7 @@ Rectangle {
     gradient: Gradient {
         GradientStop {
             position: 0.04;
-            color: "#ee4434";
+            color: "#15e08b";
         }
         GradientStop {
             position: 1.00;

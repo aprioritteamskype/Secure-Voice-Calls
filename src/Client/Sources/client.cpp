@@ -1,8 +1,8 @@
 #include "client.h"
 #include <thread>
+#include <iostream> //FIXME extra include
 #include "qmlclientstate.h"
 #include "utils.h"
-#include <iostream> //FIXME extra include
 
 secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model,
                                   int p2pClientSidePort,
@@ -51,6 +51,7 @@ void secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
         addClientToModel(response);
         using secure_voice_call::QMLClientState;
         QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
+        QMLClientState::getInstance().setAuthorizatedAs(name);
     } else {
         mHasConnection = false;
         mstream->WritesDone();
@@ -84,6 +85,17 @@ void secure_voice_call::Client::finishPeerToPeerOutgoingCall()
 void secure_voice_call::Client::finishPeerToPeerIncomingCall(bool success)
 {
     emit mPeerToPeer.finishPeerToPeerIncomingCall(success);
+}
+
+void secure_voice_call::Client::exit()
+{
+    if(mHasConnection){
+        mstream->WritesDone();
+        mstream->Finish();
+        mHasConnection = false;
+    }
+    using secure_voice_call::QMLClientState;
+    QMLClientState::getInstance().setState(QMLClientState::ClientStates::Authorization);
 }
 
 void secure_voice_call::Client::sendClientsOnlineRequest()

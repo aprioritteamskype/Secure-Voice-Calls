@@ -10,7 +10,6 @@ namespace secure_voice_call{
         QMLClientState(QObject *parent = nullptr);
         QMLClientState( const QMLClientState&) = default;
         QMLClientState& operator=( QMLClientState& ) = default;
-
     public:
         enum class ClientStates{
             Authorization,
@@ -20,20 +19,28 @@ namespace secure_voice_call{
             InConversation
         };
         Q_ENUM(ClientStates)
+        Q_PROPERTY(QString callerName READ callerName WRITE setCallerName NOTIFY callerNameChanged)
+        Q_PROPERTY(QString authorizatedAs READ authorizatedAs WRITE setAuthorizatedAs NOTIFY authorizatedAsChanged)
         Q_PROPERTY(ClientStates clientState READ getState WRITE setState NOTIFY stateChanged)
-        ClientStates getState() const { return m_clientState; }
 
-        static QMLClientState& getInstance() {
-            static QMLClientState  instance;
-            return instance;
-        }
+        ClientStates getState() const;
+        static QMLClientState& getInstance();
+        QString callerName() const;
+        QString authorizatedAs() const;
 
     public slots:
         void setState(ClientStates clientState);
+        void setCallerName(QString callerName);
+        void setAuthorizatedAs(QString authorizatedAs);
 
     signals:
         void stateChanged(ClientStates clientState);
+        void callerNameChanged(QString callerName);
+        void authorizatedAsChanged(QString authorizatedAs);
+
     private:
-        ClientStates m_clientState = ClientStates::Authorization;
+        ClientStates mClientState = ClientStates::Authorization;
+        QString mCallerName;
+        QString mAuthorizatedAs;
     };
 }

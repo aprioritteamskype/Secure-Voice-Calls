@@ -26,6 +26,8 @@ void runServer(int port)
 
     builder.AddListeningPort(address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
+    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, 20000);
+    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 10000);
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
     std::cout << "Server listening on port: " << address << std::endl;

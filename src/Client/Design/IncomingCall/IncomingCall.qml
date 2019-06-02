@@ -5,7 +5,6 @@ Item {
     id: root
     width: column.width
     height: column.height
-    property string  callername: ""
 
     Column {
         id: column
@@ -22,8 +21,8 @@ Item {
                 color: "red"
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
-                font.pixelSize: 12
-                text: root.callername
+                font.pixelSize: 16
+                text: globClientState.callerName
             }
         }
         Row {
