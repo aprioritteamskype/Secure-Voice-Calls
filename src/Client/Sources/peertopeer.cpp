@@ -83,6 +83,7 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
     }else{
         mClientStream->WritesDone();
         mClientStream->Finish();
+        QMLClientState::getInstance().setStatus("User have declined your call");
     }
     mClientState->setState(QMLClientState::ClientStates::Online);
 }
@@ -213,7 +214,6 @@ void secure_voice_call::PeerToPeer::serverWriteVoiceThread(ServerReaderWriter<Ca
 //what earlier, user on the other side take a call or user on this side cancel
 bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResponse &response, ClientContext& context)
 {
-    OutgoingCallStates outgoingState = OutgoingCallStates::NotFinished;
     bool success = false;
     std::thread readThread([this, &response](){
         mClientStream->Read(&response);
@@ -232,6 +232,8 @@ bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResp
         QObject::disconnect(*ptr);
         delete ptr;
     });
+
+    OutgoingCallStates outgoingState = OutgoingCallStates::NotFinished;
     *sh = QObject::connect(this, &PeerToPeer::finishPeerToPeerOutgoingCall,
                            [&success, &loop, &outgoingState, &context](OutgoingCallStates st){
         if(outgoingState == OutgoingCallStates::NotFinished) {

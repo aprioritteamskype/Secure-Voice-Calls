@@ -22,6 +22,11 @@ QString QMLClientState::authorizatedAs() const
     return mAuthorizatedAs;
 }
 
+QString QMLClientState::status() const
+{
+    return mStatus;
+}
+
 void QMLClientState::setState(QMLClientState::ClientStates clientState)
 {
     if (mClientState == clientState)
@@ -47,4 +52,10 @@ void QMLClientState::setAuthorizatedAs(QString authorizatedAs)
 
     mAuthorizatedAs = authorizatedAs;
     emit authorizatedAsChanged(mAuthorizatedAs);
+}
+
+void QMLClientState::setStatus(QString status)
+{
+    mStatus = status;
+    emit statusChanged(mStatus);
 }

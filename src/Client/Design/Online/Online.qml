@@ -55,7 +55,6 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
-                        console.log("exit clicked2");
                         client.exit();
                     }
                 }

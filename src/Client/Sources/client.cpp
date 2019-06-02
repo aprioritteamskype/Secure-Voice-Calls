@@ -42,6 +42,7 @@ void secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
         mstream->WritesDone();
         status =  mstream->Finish();
         std::cout << status.error_message() << std::endl;
+        QMLClientState::getInstance().setStatus("Connection with server failed");
         return;
     }
 
@@ -56,6 +57,7 @@ void secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
         mHasConnection = false;
         mstream->WritesDone();
         status =  mstream->Finish();
+        QMLClientState::getInstance().setStatus("Bad authorization: use another login");
     }
     if(!status.ok())
         std::cout << "row 63 client.cpp bad authorization" << std::endl;
@@ -96,6 +98,7 @@ void secure_voice_call::Client::exit()
     }
     using secure_voice_call::QMLClientState;
     QMLClientState::getInstance().setState(QMLClientState::ClientStates::Authorization);
+    QMLClientState::getInstance().setStatus("Signed out");
 }
 
 void secure_voice_call::Client::sendClientsOnlineRequest()
@@ -112,6 +115,7 @@ void secure_voice_call::Client::sendClientsOnlineRequest()
         mstream->WritesDone();
         mstream->Finish();
         QMLClientState::getInstance().setState(QMLClientState::ClientStates::Authorization);
+        QMLClientState::getInstance().setStatus("Connection with server failed");
         return;
     }
     if (!mstream->Read(&response)){
@@ -119,6 +123,7 @@ void secure_voice_call::Client::sendClientsOnlineRequest()
         mstream->WritesDone();
         mstream->Finish();
         QMLClientState::getInstance().setState(QMLClientState::ClientStates::Authorization);
+        QMLClientState::getInstance().setStatus("Connection with server failed");
         return;
     }
     if(response.responsetype() == secure_voice_call::TypeMessage::GetClientsOnline){

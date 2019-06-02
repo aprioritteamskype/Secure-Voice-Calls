@@ -2,6 +2,7 @@ import QtQuick 2.9
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.5
 import com.securevoicecaller 1.0
+import "NotificationManager"
 
 Window {
     visible: true
@@ -11,6 +12,10 @@ Window {
 
     Background {
         id: root
+
+        NotificationManager {
+//        visible: false
+        }
 
         Loader {
             id: loaderOnlineComponent
