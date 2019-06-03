@@ -55,6 +55,16 @@ Item {
         Image {
             anchors.fill: parent
             source: "qrc:/Design/Images/user.png"
+            Text {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 30
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: "red"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 16
+                text: globClientState.callerName
+            }
         }
     }
     RoundButton {

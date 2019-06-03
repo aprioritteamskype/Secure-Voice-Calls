@@ -79,7 +79,7 @@ Rectangle {
         Row {
             id: row1
             width: parent.width
-
+            spacing: 10
             Text {
                 text: qsTr("Status:")
                 font.pixelSize: 12
@@ -89,7 +89,7 @@ Rectangle {
                 id: statusLable
                 width: 80
                 height: 20
-                text: qsTr("")
+                text: globClientState.status
                 font.pixelSize: 12
             }
         }

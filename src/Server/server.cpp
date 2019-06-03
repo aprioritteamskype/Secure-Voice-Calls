@@ -29,6 +29,7 @@ grpc::Status secure_voice_call::Server::Authorization(grpc::ServerContext *conte
                     addClientsToResponse(response);
                     stream->Write(response);
                 }else {
+                    stream->Write(response);
                     return Status::CANCELLED;
                 }
                 break;

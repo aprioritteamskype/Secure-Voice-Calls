@@ -31,10 +31,12 @@ message AuthorizationResponse {
 
 message CallRequest {
   string callerName = 1;
-  uint32 audiobytes = 2;          //voice 8 bytes
+  bytes audiobytes = 2;
+  int32 packetSize = 3;
 }
 
 message CallResponse {
   bool isSuccessful = 1;
-  uint32 audiobytes = 2;          //voice 8 bytes
+  bytes audiobytes = 2;
+  int32 packetSize = 3;
 }
