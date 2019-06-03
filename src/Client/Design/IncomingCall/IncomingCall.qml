@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.5
+import QtMultimedia 5.12
 
 Item {
     id: root
@@ -89,5 +90,15 @@ Item {
                 text: "stop call"
             }
         }
+    }
+
+    Audio {
+        id: soundPlayer
+        source: "qrc:/Sounds/IncomingCall.wav"
+        loops: Audio.Infinite
+    }
+
+    Component.onCompleted: {
+        soundPlayer.play();
     }
 }

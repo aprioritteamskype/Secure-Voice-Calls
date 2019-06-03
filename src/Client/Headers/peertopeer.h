@@ -58,6 +58,8 @@ namespace secure_voice_call {
     private:
         std::atomic_bool mIsInConversation{false};
         std::atomic_bool mIsCanceledStream{false};
+        std::atomic_int mIncomingCallTimersCount{0};
+        std::atomic_int mOutgoingCallTimersCount{0};
         std::string mClientServerSideAddress;
         std::string mCallerName;
         std::unique_ptr<ClientReaderWriter<CallRequest, CallResponse>> mClientStream;

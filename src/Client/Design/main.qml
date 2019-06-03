@@ -13,10 +13,6 @@ Window {
     Background {
         id: root
 
-        NotificationManager {
-//        visible: false
-        }
-
         Loader {
             id: loaderOnlineComponent
             anchors.fill: parent
@@ -53,5 +49,7 @@ Window {
             source: "InConversation/InConversation.qml"
             active: globClientState.clientState === QMLClientState.InConversation
         }
+
+        NotificationManager { }
     }
 }

@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import com.securevoicecaller 1.0
 
 Rectangle {
     id: root
@@ -28,14 +29,24 @@ Rectangle {
 
 //-----------------------------------------------------------------methods{
     function show(){
-        showAnimation.start();
-        hideNotificationTimer.start();
+        showAnimation.restart();
+        hideNotificationTimer.restart();
     }
 
     function hide(){
         hideAnimation.start()
     }
 //-----------------------------------------------------------------methods}
+
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        onClicked: {
+                hideNotificationTimer.stop();
+                root.hide();
+        }
+    }
 
     Text {
         id: statusLable
@@ -86,7 +97,9 @@ Rectangle {
         id: statusChangeConnection
         target: globClientState
         onStatusChanged: {
-            show();
+            if(globClientState.clientState !== QMLClientState.Authorization){
+                show();
+            }
         }
     }
 

@@ -221,8 +221,11 @@ bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResp
     });
     //[timer]-----------------------------------------------------------------------------
     std::thread timerThread([this](){
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        int numberOfTimer = ++mOutgoingCallTimersCount;
+        std::this_thread::sleep_for(std::chrono::seconds(12));
+        if (numberOfTimer != mOutgoingCallTimersCount) return;
         emit finishPeerToPeerOutgoingCall(OutgoingCallStates::FinishedByTimer);
+        mOutgoingCallTimersCount = 0;
     });
     timerThread.detach();
     //[timer]-----------------------------------------------------------------------------
@@ -278,8 +281,11 @@ bool secure_voice_call::PeerToPeer::raceIncomingCall(ServerContext& context)
     std::atomic_bool isPeerToPeerIncomingCallFinished(false);
     //[timer]-----------------------------------------------------------------------------
     std::thread timerThread([this](){
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        int numberOfTimer = ++mIncomingCallTimersCount;
+        std::this_thread::sleep_for(std::chrono::seconds(12));
+        if (numberOfTimer != mIncomingCallTimersCount) return;
         emit finishPeerToPeerIncomingCall(false);
+        mIncomingCallTimersCount = 0;
     });
     timerThread.detach();
     //[timer]-----------------------------------------------------------------------------
