@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.5
+import QtMultimedia 5.12
 
 Item {
     width: 250
@@ -43,5 +44,15 @@ Item {
         width: 100
         height: 60
         text: "cancel call"
+    }
+
+    Audio {
+        id: soundPlayer
+        source: "qrc:/Sounds/OutgoingCall.wav"
+        loops: Audio.Infinite
+    }
+
+    Component.onCompleted: {
+        soundPlayer.play();
     }
 }

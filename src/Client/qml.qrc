@@ -11,5 +11,8 @@
         <file>Design/InConversation/InConversation.qml</file>
         <file>Design/IncomingCall/IncomingCall.qml</file>
         <file>Design/OutgoingCall/OutgoingCall.qml</file>
+        <file>Design/NotificationManager/NotificationManager.qml</file>
+        <file>Sounds/IncomingCall.wav</file>
+        <file>Sounds/OutgoingCall.wav</file>
     </qresource>
 </RCC>

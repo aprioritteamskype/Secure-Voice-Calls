@@ -12,19 +12,17 @@ Rectangle {
             id: content
 
             anchors { left: parent.left; right: parent.right }
-            height: column.implicitHeight + 20
+            height: row.height + 20
 
             border.width: 1
-            border.color: "lightsteelblue"
+            border.color: "#5a4c4c"
 
             radius: 20
 
-            Column {
-                id: column
-                anchors { fill: parent; margins: 2 }
-
-
                 Row{
+                    id: row
+                    spacing: 10
+                    anchors.centerIn: parent
                     Text {
                         text: model.username
                         horizontalAlignment: Text.AlignHCenter
@@ -39,7 +37,7 @@ Rectangle {
                     }
                 }
             }
-        }
+
     }
     ListView {
         id: view

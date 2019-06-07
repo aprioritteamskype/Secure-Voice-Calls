@@ -30,6 +30,9 @@ void secure_voice_call::PeerToPeer::runServer()
     builder.AddListeningPort(mClientServerSideAddress, grpc::InsecureServerCredentials()); //FIXME
     //builder.AddListeningPort(mClientServerSideAddress, creds);
     builder.RegisterService(this);
+    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, 2000);
+    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 5000);
+
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
     std::cout << "ClientSide-Server listening on port: " << mClientServerSideAddress << std::endl;
@@ -40,6 +43,7 @@ void secure_voice_call::PeerToPeer::runServer()
 void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string callername) //new thread
 {
     std::cout << "try to call callcaller: " << callername << " " << ip << std::endl;
+    mClientState->setCallerName(QString::fromStdString(callername));
     std::shared_ptr<Channel> channel = grpc::CreateChannel(
                 ip,
                 grpc::InsecureChannelCredentials() //FIXME
@@ -49,7 +53,7 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
     CallRequest request;
     CallResponse response;
 
-    request.set_callername(callername);
+    request.set_callername(mClientState->authorizatedAs().toStdString()); //send your authorizated user name
     ClientContext context;
     mClientStream = mstub->HandShake(&context);
     mClientStream->Write(request);
@@ -79,6 +83,7 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
     }else{
         mClientStream->WritesDone();
         mClientStream->Finish();
+        QMLClientState::getInstance().setStatus("User have declined your call");
     }
     mClientState->setState(QMLClientState::ClientStates::Online);
 }
@@ -97,9 +102,10 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         return Status::CANCELLED;
     }
     std::cout << "ServerSide: ClientStates::IncomingCall: " << std::endl;
-    mClientState->setState(QMLClientState::ClientStates::IncomingCall);
 
     stream->Read(&request);
+    mClientState->setState(QMLClientState::ClientStates::IncomingCall);
+    mClientState->setCallerName(QString::fromStdString(request.callername()));
     if(raceIncomingCall(*context)){
         response.set_issuccessful(true);
         stream->Write(response);
@@ -208,7 +214,6 @@ void secure_voice_call::PeerToPeer::serverWriteVoiceThread(ServerReaderWriter<Ca
 //what earlier, user on the other side take a call or user on this side cancel
 bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResponse &response, ClientContext& context)
 {
-    OutgoingCallStates outgoingState = OutgoingCallStates::NotFinished;
     bool success = false;
     std::thread readThread([this, &response](){
         mClientStream->Read(&response);
@@ -216,8 +221,11 @@ bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResp
     });
     //[timer]-----------------------------------------------------------------------------
     std::thread timerThread([this](){
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        int numberOfTimer = ++mOutgoingCallTimersCount;
+        std::this_thread::sleep_for(std::chrono::seconds(12));
+        if (numberOfTimer != mOutgoingCallTimersCount) return;
         emit finishPeerToPeerOutgoingCall(OutgoingCallStates::FinishedByTimer);
+        mOutgoingCallTimersCount = 0;
     });
     timerThread.detach();
     //[timer]-----------------------------------------------------------------------------
@@ -227,6 +235,8 @@ bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResp
         QObject::disconnect(*ptr);
         delete ptr;
     });
+
+    OutgoingCallStates outgoingState = OutgoingCallStates::NotFinished;
     *sh = QObject::connect(this, &PeerToPeer::finishPeerToPeerOutgoingCall,
                            [&success, &loop, &outgoingState, &context](OutgoingCallStates st){
         if(outgoingState == OutgoingCallStates::NotFinished) {
@@ -271,8 +281,11 @@ bool secure_voice_call::PeerToPeer::raceIncomingCall(ServerContext& context)
     std::atomic_bool isPeerToPeerIncomingCallFinished(false);
     //[timer]-----------------------------------------------------------------------------
     std::thread timerThread([this](){
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        int numberOfTimer = ++mIncomingCallTimersCount;
+        std::this_thread::sleep_for(std::chrono::seconds(12));
+        if (numberOfTimer != mIncomingCallTimersCount) return;
         emit finishPeerToPeerIncomingCall(false);
+        mIncomingCallTimersCount = 0;
     });
     timerThread.detach();
     //[timer]-----------------------------------------------------------------------------

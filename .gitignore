@@ -2,3 +2,5 @@ smt
 CMakeLists.txt.user*
 *.autosave
 build*
+bin
+lib
