@@ -231,7 +231,7 @@ bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResp
     //[timer]-----------------------------------------------------------------------------
     QEventLoop loop;
     std::shared_ptr<QMetaObject::Connection> sh(new QMetaObject::Connection(),
-                                           [](QMetaObject::Connection *ptr){
+                                           [this](QMetaObject::Connection *ptr){
         QObject::disconnect(*ptr);
         delete ptr;
     });
@@ -299,7 +299,7 @@ bool secure_voice_call::PeerToPeer::raceIncomingCall(ServerContext& context)
     });
     //[ClientSideCanceled connection]-----------------------------------------------------
     std::shared_ptr<QMetaObject::Connection> sh(new QMetaObject::Connection(),
-                                           [](QMetaObject::Connection *ptr){
+                                           [this](QMetaObject::Connection *ptr){
         QObject::disconnect(*ptr);
         delete ptr;
     });
