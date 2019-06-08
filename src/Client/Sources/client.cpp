@@ -3,6 +3,7 @@
 #include <iostream> //FIXME extra include
 #include "qmlclientstate.h"
 #include "utils.h"
+#include <plog/Log.h>
 
 secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model,
                                   int p2pClientSidePort,
@@ -41,7 +42,7 @@ void secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
         mHasConnection = false;
         mstream->WritesDone();
         status =  mstream->Finish();
-        std::cout << status.error_message() << std::endl;
+        LOG(plog::error) << "[Authorization]Error: " << status.error_message();
         QMLClientState::getInstance().setStatus("Connection with server failed");
         return;
     }
@@ -60,7 +61,7 @@ void secure_voice_call::Client::sendAuthorizationRequest(const QString &name)
         QMLClientState::getInstance().setStatus("Bad authorization: use another login");
     }
     if(!status.ok())
-        std::cout << "row 63 client.cpp bad authorization" << std::endl;
+        LOG(plog::error) << "[Authorization]Bad authorization status";
 }
 
 void secure_voice_call::Client::addClientToModel(const secure_voice_call::AuthorizationResponse &response) const
@@ -135,10 +136,11 @@ void secure_voice_call::Client::sendClientsOnlineRequest()
 
 void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
 {
-    std::cout << "setState(QMLClientState::ClientStates::OutgoingCall) " << std::endl;
+    LOG(plog::info) << "[State]setState(QMLClientState::ClientStates::OutgoingCall)";
     QMLClientState::getInstance().setState(QMLClientState::ClientStates::OutgoingCall);
     if(!mHasConnection)
     {
+        LOG(plog::info) << "[State]setState(QMLClientState::ClientStates:Authorization)";
         QMLClientState::getInstance().setState(QMLClientState::ClientStates::Authorization);
         return;
     }
@@ -149,6 +151,7 @@ void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
         mHasConnection = false;
         mstream->WritesDone();
         mstream->Finish();
+        LOG(plog::info) << "[State]setState(QMLClientState::ClientStates:Authorization)";
         QMLClientState::getInstance().setState(QMLClientState::ClientStates::Authorization);
         return;
     }
@@ -156,6 +159,7 @@ void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
         mHasConnection = false;
         mstream->WritesDone();
         mstream->Finish();
+        LOG(plog::info) << "[State]setState(QMLClientState::ClientStates:Authorization)";
         QMLClientState::getInstance().setState(QMLClientState::ClientStates::Authorization);
         return;
     }
@@ -164,11 +168,11 @@ void secure_voice_call::Client::sendIdByUserNameRequest(const QString &username)
     std::thread callThread([this, qstrUserip, username](){
         try
         {
-        mPeerToPeer.sendCallRequest(qstrUserip.toStdString(), username.toStdString());
+            mPeerToPeer.sendCallRequest(qstrUserip.toStdString(), username.toStdString());
         }
         catch (const std::exception& ex)
         {
-            std::cout << "error " << ex.what() << std::endl;
+            LOG(plog::error) << "[Authorization]Error: " << ex.what();
         }
     });
     callThread.detach();
