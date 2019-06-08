@@ -24,6 +24,9 @@ using secure_voice_call::CallGreeter;
 using secure_voice_call::CallRequest;
 using secure_voice_call::CallResponse;
 
+#define SVC_PEERTOPEER_KEEPALIVE_TIME_MS 2*1000
+#define SVC_PEERTOPEER_KEEPALIVE_TIMEOUT_MS 5*1000
+
 namespace secure_voice_call {
     class PeerToPeer final : public QObject, public CallGreeter::Service
     {

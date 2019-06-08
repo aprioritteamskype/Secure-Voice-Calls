@@ -44,10 +44,16 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
 {
     std::cout << "try to call callcaller: " << callername << " " << ip << std::endl;
     QMLClientState::getInstance().setCallerName(QString::fromStdString(callername));
-    std::shared_ptr<Channel> channel = grpc::CreateChannel(
+
+    grpc::ChannelArguments chArgs;
+    chArgs.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, SVC_PEERTOPEER_KEEPALIVE_TIME_MS);
+    chArgs.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, SVC_PEERTOPEER_KEEPALIVE_TIMEOUT_MS);
+    std::shared_ptr<Channel> channel = grpc::CreateCustomChannel(
                 ip,
-                grpc::InsecureChannelCredentials()
+                grpc::InsecureChannelCredentials(),
+                chArgs
                 );
+
     mstub = CallGreeter::NewStub(channel);
     CallRequest request;
     CallResponse response;
@@ -139,7 +145,10 @@ void secure_voice_call::PeerToPeer::clientReadVoiceThread(grpc::ClientContext& c
     CallResponse response;
     mAudioModule->startPlayingAudio();
     std::cout<<"startPlayingAudio"<<std::endl;
-    while (mClientStream->Read(&response) && mIsInConversation) {
+    while (mIsInConversation
+           && QMLClientState::getInstance().getState() == QMLClientState::ClientStates::InConversation
+           && mClientStream->Read(&response))
+    {
         mAudioModule->readVoice(response);
     }
     mAudioModule->stopPlayingAudio();
@@ -155,7 +164,9 @@ void secure_voice_call::PeerToPeer::clientWriteVoiceThread(grpc::ClientContext& 
     mAudioModule->startRecordingAudio();
     std::cout<<"startRecordingAudio"<<std::endl;
     CallRequest request;
-    while(mIsInConversation){
+    while(mIsInConversation
+          && QMLClientState::getInstance().getState() == QMLClientState::ClientStates::InConversation)
+    {
         if(mAudioModule->writeVoice(request)){
             if(!mClientStream->Write(request)){
                 std::cout<<"There is no connection"<<std::endl;
@@ -180,7 +191,10 @@ void secure_voice_call::PeerToPeer::serverReadVoiceThread(ServerReaderWriter<Cal
     CallRequest request;
     mAudioModule->startPlayingAudio();
     std::cout<<"startPlayingAudio"<<std::endl;
-    while (stream->Read(&request) && mIsInConversation) {
+    while (mIsInConversation
+           && QMLClientState::getInstance().getState() == QMLClientState::ClientStates::InConversation
+           && stream->Read(&request))
+    {
           mAudioModule->readVoice(request);
     }
     mAudioModule->stopPlayingAudio();
@@ -196,7 +210,9 @@ void secure_voice_call::PeerToPeer::serverWriteVoiceThread(ServerReaderWriter<Ca
     CallResponse response;
     mAudioModule->startRecordingAudio();
     std::cout<<"startRecordingAudio"<<std::endl;
-    while(mIsInConversation){
+    while(mIsInConversation
+          && QMLClientState::getInstance().getState() == QMLClientState::ClientStates::InConversation)
+    {
         if(mAudioModule->writeVoice(response)){
             if(!stream->Write(response)){
                 std::cout<<"There is no connection"<<std::endl;
