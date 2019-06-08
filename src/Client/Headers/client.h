@@ -15,6 +15,9 @@ using grpc::ClientContext;
 using grpc::Status;
 using grpc::ClientReaderWriter;
 
+#define SVC_CLIENTSERVER_KEEPALIVE_TIME_MS 10*1000
+#define SVC_CLIENTSERVERKEEPALIVE_TIMEOUT_MS 5*1000
+
 namespace secure_voice_call {
     class Client : public QObject {
         Q_OBJECT
