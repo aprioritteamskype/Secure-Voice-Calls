@@ -7,6 +7,8 @@
 #include "client-server.grpc.pb.h"
 #include "qmlclientstate.h"
 #include "audiomodule.h"
+#include "qmlmissedcallsmodel.h"
+
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
@@ -35,11 +37,11 @@ namespace secure_voice_call {
         };
         Q_ENUM(OutgoingCallStates)
     public:
-        PeerToPeer(int p2pServerSidePort = 5001);
+        PeerToPeer(secure_voice_call::QMLMissedCallsModel *missedCalls,
+                   int p2pServerSidePort = 5001);
 
         void declineCall();
         void sendCallRequest(std::string ip, std::string callername);
-        // Service interface
     public:
         grpc::Status HandShake(grpc::ServerContext *context, ::grpc::ServerReaderWriter<CallResponse, CallRequest> *stream) override;
     private:
@@ -65,7 +67,7 @@ namespace secure_voice_call {
         std::unique_ptr<ClientReaderWriter<CallRequest, CallResponse>> mClientStream;
         std::unique_ptr<CallGreeter::Stub> mstub;
         std::thread mServerThread;
-        QMLClientState* mClientState;
         std::unique_ptr<AudioModule> mAudioModule;
+        secure_voice_call::QMLMissedCallsModel* mMissedCalls;
     };
 }
