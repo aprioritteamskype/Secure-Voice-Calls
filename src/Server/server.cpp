@@ -63,7 +63,7 @@ grpc::Status secure_voice_call::Server::Authorization(grpc::ServerContext *conte
     }
     auto it = m_clientOnline.find(name);
     if(it != m_clientOnline.end()){
-        m_clientOnline.erase(m_clientOnline.find(name));
+        m_clientOnline.erase(it);
     }
     return Status::OK;
 }

@@ -4,15 +4,16 @@
 #include "qmlclientstate.h"
 #include "utils.h"
 
-secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model,
+secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel *model,
+                                  secure_voice_call::QMLMissedCallsModel *missedCallsModel,
                                   int p2pClientSidePort,
                                   int p2pServerSidePort,
                                   const std::string& serverAddress)
     : QObject (nullptr),
       mServerAddress(serverAddress),
       mP2PClientSidePort(p2pClientSidePort),
-      mModel(&model),
-      mPeerToPeer(p2pServerSidePort)
+      mModel(model),
+      mPeerToPeer(missedCallsModel, p2pServerSidePort)
 {
     mClientsOnlineRequest.set_requesttype(secure_voice_call::TypeMessage::GetClientsOnline);
     mGetIpByNameRequest.set_requesttype(secure_voice_call::TypeMessage::GetIpByUserName);

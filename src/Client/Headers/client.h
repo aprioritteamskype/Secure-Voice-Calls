@@ -3,6 +3,7 @@
 #include <iostream>
 #include "client-server.grpc.pb.h"
 #include "qmlclientsonlinemodel.h"
+#include "qmlmissedcallsmodel.h"
 #include "peertopeer.h"
 
 using secure_voice_call::Greeter;
@@ -18,7 +19,8 @@ namespace secure_voice_call {
     class Client : public QObject {
         Q_OBJECT
     public:
-        Client(secure_voice_call::QMLClientsOnlineModel &model,
+        Client(secure_voice_call::QMLClientsOnlineModel *model,
+               secure_voice_call::QMLMissedCallsModel *missedCallsModel,
                int p2pClientSidePort = 5001,
                int p2pServerSidePort = 5001,
                const std::string& serverAddress = "0.0.0.0:5000");

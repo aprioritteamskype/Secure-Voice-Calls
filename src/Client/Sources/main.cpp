@@ -6,6 +6,7 @@
 #include "client.h"
 #include "qmlclientstate.h"
 #include "qmlclientsonlinemodel.h"
+#include "qmlmissedcallsmodel.h"
 #include "peertopeer.h"
 #include "commandArgsParser.h"
 
@@ -23,7 +24,9 @@ int main(int argc, char *argv[])
     std::cout << "parser.peerToPeerClientSidePort() " << parser.peerToPeerClientSidePort() << std::endl;
     std::cout << "parser.peerToPeerServerSidePort() " << parser.peerToPeerServerSidePort() << std::endl;
     secure_voice_call::QMLClientsOnlineModel *model = new secure_voice_call::QMLClientsOnlineModel();
-    secure_voice_call::Client *client = new secure_voice_call::Client(*model,
+    secure_voice_call::QMLMissedCallsModel *missedCallsModel = new secure_voice_call::QMLMissedCallsModel();
+    secure_voice_call::Client *client = new secure_voice_call::Client(model,
+                                                                      missedCallsModel ,
                                                                       parser.peerToPeerClientSidePort(),
                                                                       parser.peerToPeerServerSidePort(),
                                                                       parser.serverIp());
@@ -33,6 +36,7 @@ int main(int argc, char *argv[])
                                                "Uncreatable type QMLClientState");
     engine.rootContext()->setContextProperty("globClientState", &secure_voice_call::QMLClientState::getInstance());
     engine.rootContext()->setContextProperty("onlineClientsModel", model);
+    engine.rootContext()->setContextProperty("missedCallsModel", missedCallsModel);
     engine.rootContext()->setContextProperty("client", client);
 
     engine.load(QUrl(QStringLiteral("qrc:/Design/main.qml")));
