@@ -9,6 +9,7 @@
 #include "client.h"
 #include "qmlclientstate.h"
 #include "qmlclientsonlinemodel.h"
+#include "qmlmissedcallsmodel.h"
 #include "peertopeer.h"
 #include "commandArgsParser.h"
 #define LOG_DIR_PASS  "Logs"
@@ -34,7 +35,9 @@ int main(int argc, char *argv[])
     LOG(plog::info) << "[CommandArgsParser]parser.peerToPeerClientSidePort() " << parser.peerToPeerClientSidePort();
     LOG(plog::info) << "[CommandArgsParser]parser.peerToPeerServerSidePort() " << parser.peerToPeerServerSidePort();
     secure_voice_call::QMLClientsOnlineModel *model = new secure_voice_call::QMLClientsOnlineModel();
-    secure_voice_call::Client *client = new secure_voice_call::Client(*model,
+    secure_voice_call::QMLMissedCallsModel *missedCallsModel = new secure_voice_call::QMLMissedCallsModel();
+    secure_voice_call::Client *client = new secure_voice_call::Client(model,
+                                                                      missedCallsModel ,
                                                                       parser.peerToPeerClientSidePort(),
                                                                       parser.peerToPeerServerSidePort(),
                                                                       parser.serverIp());
@@ -44,6 +47,7 @@ int main(int argc, char *argv[])
                                                "Uncreatable type QMLClientState");
     engine.rootContext()->setContextProperty("globClientState", &secure_voice_call::QMLClientState::getInstance());
     engine.rootContext()->setContextProperty("onlineClientsModel", model);
+    engine.rootContext()->setContextProperty("missedCallsModel", missedCallsModel);
     engine.rootContext()->setContextProperty("client", client);
 
     engine.load(QUrl(QStringLiteral("qrc:/Design/main.qml")));

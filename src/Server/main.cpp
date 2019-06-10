@@ -10,7 +10,8 @@
 
 #define LOG_DIR_PASS  "Logs"
 #define LOG_PASS  "Logs/ServerLog.txt"
-
+#define SVC_KEEPALIVE_TIME_MS 10*1000
+#define SVC_KEEPALIVE_TIMEOUT_MS 5*1000
 void runServer(int port = 5000);
 
 int main(int argc, char *argv[])
@@ -39,8 +40,8 @@ void runServer(int port)
 
     builder.AddListeningPort(address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
-    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, 20000);
-    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 10000);
+    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, SVC_KEEPALIVE_TIME_MS);
+    builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, SVC_KEEPALIVE_TIMEOUT_MS);
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
     LOG(plog::info) << "[Server]Server listening on port: " << address;

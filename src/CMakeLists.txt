@@ -6,7 +6,7 @@ include(cmake/config.cmake)
 
 include(cmake/conan_setup.cmake)
 
-include_directories("plog-1.0.0/include")
+include_directories("plog/include")
 
 add_subdirectory(GRPC)
 add_subdirectory(Tools)

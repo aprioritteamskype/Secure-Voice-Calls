@@ -3,11 +3,6 @@
 secure_voice_call::QMLClientsOnlineModel::QMLClientsOnlineModel(QObject *parent)
     : QAbstractListModel(parent)
 {
-    beginResetModel();
-    for (int i = 0; i < 10; ++i) {
-        mClients.push_back(std::to_string(i)+ " user");
-    }
-    endResetModel();
 }
 
 void secure_voice_call::QMLClientsOnlineModel::setCLients(std::vector<std::string> &clients)

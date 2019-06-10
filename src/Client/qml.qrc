@@ -14,5 +14,9 @@
         <file>Design/NotificationManager/NotificationManager.qml</file>
         <file>Sounds/IncomingCall.wav</file>
         <file>Sounds/OutgoingCall.wav</file>
+        <file>Design/MissedCalls/MissedCalls.qml</file>
+        <file>Design/MissedCalls/MissedCallsList.qml</file>
+        <file>Design/MissedCalls/CallButton.qml</file>
+        <file>Design/MissedCalls/ClearButton.qml</file>
     </qresource>
 </RCC>

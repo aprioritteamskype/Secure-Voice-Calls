@@ -3,6 +3,7 @@
 #include <iostream>
 #include "client-server.grpc.pb.h"
 #include "qmlclientsonlinemodel.h"
+#include "qmlmissedcallsmodel.h"
 #include "peertopeer.h"
 
 using secure_voice_call::Greeter;
@@ -14,11 +15,15 @@ using grpc::ClientContext;
 using grpc::Status;
 using grpc::ClientReaderWriter;
 
+#define SVC_CLIENTSERVER_KEEPALIVE_TIME_MS 10*1000
+#define SVC_CLIENTSERVERKEEPALIVE_TIMEOUT_MS 5*1000
+
 namespace secure_voice_call {
     class Client : public QObject {
         Q_OBJECT
     public:
-        Client(secure_voice_call::QMLClientsOnlineModel &model,
+        Client(secure_voice_call::QMLClientsOnlineModel *model,
+               secure_voice_call::QMLMissedCallsModel *missedCallsModel,
                int p2pClientSidePort = 5001,
                int p2pServerSidePort = 5001,
                const std::string& serverAddress = "0.0.0.0:5000");
