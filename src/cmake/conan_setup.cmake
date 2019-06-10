@@ -25,12 +25,6 @@ else (IS_MULTI_CONFIG)
     set(CUSTOM_NO_OUTPUT_DIR_PARAM NO_OUTPUT_DIRS)
 endif (IS_MULTI_CONFIG)
 
-#find_program(VIRTUALENV virtualenv)
-#if(NOT VIRTUALENV)
-#    message(FATAL_ERROR "Could not find `virtualenv` in PATH")
-#endif()
-#set(VIRTUALENV ${VIRTUALENV} -p python2.7)
-
 conan_cmake_run(
     CONANFILE conan/conanfile.txt
     BASIC_SETUP

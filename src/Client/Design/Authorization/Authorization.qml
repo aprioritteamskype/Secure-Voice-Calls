@@ -8,7 +8,9 @@ Rectangle {
 
     Column {
         id: column
-        anchors.centerIn: parent
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenterOffset: 40
         spacing: 50
         width: parent.width - 50
         height: parent.height - 50
@@ -20,7 +22,7 @@ Rectangle {
             Text {
                 height: 30
                 text: qsTr("Enter name: ")
-                font.pixelSize: 12
+                font.pixelSize: 15
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
@@ -30,19 +32,18 @@ Rectangle {
                 property string enteredText: enterName.text
                 border.color: "black"
                 border.width: 2
-                width: enterName.width + 10
+                width: row.width - 220
                 height: enterName.height
                 TextInput {
                     id: enterName
-                    width: 100
+                    width: enterNameDelegate.width - 10
                     maximumLength: 70
                     height: 30
-                    focus: true
                     horizontalAlignment: TextInput.AlignHCenter
                     verticalAlignment: TextInput.AlignVCenter
                     color: "red"
                     text: ""
-                    font.pixelSize: 12
+                    font.pixelSize: 15
                     layer.enabled: true
                 }
             }
@@ -53,7 +54,7 @@ Rectangle {
                 border.color: buttonAuthorizateMouseArea.containsMouse ? "lime" : "blue"
                 border.width: 2
 
-                width: authorizateText.contentWidth+ 10
+                width: authorizateText.contentWidth + row.width/15 +  10
                 height: 30
                 color: "#c4fb9c"
                 radius: 80
@@ -70,7 +71,7 @@ Rectangle {
                     text: qsTr("Authorizate")
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    font.pixelSize: 12
+                    font.pixelSize: 15
                     anchors.fill: parent
                 }
             }
@@ -82,7 +83,7 @@ Rectangle {
             spacing: 10
             Text {
                 text: qsTr("Status:")
-                font.pixelSize: 12
+                font.pixelSize: 15
             }
 
             Text {
@@ -90,7 +91,7 @@ Rectangle {
                 width: 80
                 height: 20
                 text: globClientState.status
-                font.pixelSize: 12
+                font.pixelSize: 15
             }
         }
     }

@@ -5,23 +5,27 @@
 #include "utils.h"
 #include <plog/Log.h>
 
-secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel &model,
+secure_voice_call::Client::Client(secure_voice_call::QMLClientsOnlineModel *model,
+                                  secure_voice_call::QMLMissedCallsModel *missedCallsModel,
                                   int p2pClientSidePort,
                                   int p2pServerSidePort,
                                   const std::string& serverAddress)
     : QObject (nullptr),
       mServerAddress(serverAddress),
       mP2PClientSidePort(p2pClientSidePort),
-      mModel(&model),
-      mPeerToPeer(p2pServerSidePort)
+      mModel(model),
+      mPeerToPeer(missedCallsModel, p2pServerSidePort)
 {
     mClientsOnlineRequest.set_requesttype(secure_voice_call::TypeMessage::GetClientsOnline);
     mGetIpByNameRequest.set_requesttype(secure_voice_call::TypeMessage::GetIpByUserName);
 
-    std::shared_ptr<Channel> channel = grpc::CreateChannel(
+    grpc::ChannelArguments chArgs;
+    chArgs.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, SVC_CLIENTSERVER_KEEPALIVE_TIME_MS);
+    chArgs.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, SVC_CLIENTSERVERKEEPALIVE_TIMEOUT_MS);
+    std::shared_ptr<Channel> channel = grpc::CreateCustomChannel(
                 mServerAddress,
-                grpc::InsecureChannelCredentials()
-                );
+                grpc::InsecureChannelCredentials(),
+                chArgs);
     mstub = Greeter::NewStub(channel);
 }
 

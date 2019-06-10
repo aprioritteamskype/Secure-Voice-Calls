@@ -7,13 +7,14 @@
 #include <audiomodule.h>
 #include <plog/Log.h>
 
-secure_voice_call::PeerToPeer::PeerToPeer(int p2pServerSidePort)
+secure_voice_call::PeerToPeer::PeerToPeer(secure_voice_call::QMLMissedCallsModel *missedCalls,
+                                          int p2pServerSidePort)
     : QObject (nullptr),
-      mClientServerSideAddress("0.0.0.0:" + std::to_string(p2pServerSidePort))
+      mClientServerSideAddress("0.0.0.0:" + std::to_string(p2pServerSidePort)),
+      mMissedCalls(missedCalls)
 {
 
     mAudioModule.reset(new AudioModule());
-    mClientState = &QMLClientState::getInstance();
     mServerThread =  std::thread([this](){
         runServer();
     });
@@ -29,7 +30,6 @@ void secure_voice_call::PeerToPeer::runServer()
     ServerBuilder builder;
 
     builder.AddListeningPort(mClientServerSideAddress, grpc::InsecureServerCredentials()); //FIXME
-    //builder.AddListeningPort(mClientServerSideAddress, creds);
     builder.RegisterService(this);
     builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, 2000);
     builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 5000);
@@ -44,17 +44,21 @@ void secure_voice_call::PeerToPeer::runServer()
 void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string callername) //new thread
 {
     LOG(plog::info) << "[Call][ClientSide]try to call callcaller: " << callername << " " << ip;
-    mClientState->setCallerName(QString::fromStdString(callername));
-    std::shared_ptr<Channel> channel = grpc::CreateChannel(
+    QMLClientState::getInstance().setCallerName(QString::fromStdString(callername));
+    grpc::ChannelArguments chArgs;
+    chArgs.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, SVC_PEERTOPEER_KEEPALIVE_TIME_MS);
+    chArgs.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, SVC_PEERTOPEER_KEEPALIVE_TIMEOUT_MS);
+    std::shared_ptr<Channel> channel = grpc::CreateCustomChannel(
                 ip,
-                grpc::InsecureChannelCredentials() //FIXME
-                //grpc::SslCredentials(opts)
+                grpc::InsecureChannelCredentials(),
+                chArgs
                 );
+
     mstub = CallGreeter::NewStub(channel);
     CallRequest request;
     CallResponse response;
 
-    request.set_callername(mClientState->authorizatedAs().toStdString()); //send your authorizated user name
+    request.set_callername(QMLClientState::getInstance().authorizatedAs().toStdString()); //send your authorizated user name
     ClientContext context;
     mClientStream = mstub->HandShake(&context);
     mClientStream->Write(request);
@@ -62,12 +66,12 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
 
     if(!raceOutgoingCall(response, context)){
        LOG(plog::info) << "[Call][ClientSide]!raceOutgoingCall ";
-        mClientState->setState(QMLClientState::ClientStates::Online);
+        QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
         return;
     }
 
     if(response.issuccessful()){
-        mClientState->setState(QMLClientState::ClientStates::InConversation);
+        QMLClientState::getInstance().setState(QMLClientState::ClientStates::InConversation);
         mIsInConversation = true;
         LOG(plog::info) << "[Call][ClientSide]Client_ClientSide: response is successful";
         std::thread tRead([this, &context](){
@@ -86,7 +90,7 @@ void secure_voice_call::PeerToPeer::sendCallRequest(std::string ip, std::string 
         mClientStream->Finish();
         QMLClientState::getInstance().setStatus("User have declined your call");
     }
-    mClientState->setState(QMLClientState::ClientStates::Online);
+    QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
 }
 
 
@@ -96,23 +100,28 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
     LOG(plog::info) << "[Call][ServerSide]HANDSHAKE";
     //check flag isInConversation
     CallRequest request;
+    stream->Read(&request);
     CallResponse response;
     if (mIsInConversation) {
         response.set_issuccessful(false);
+        std::cout << "missed call: " << request.callername()
+                  << " "
+                  << QTime::currentTime().toString().toStdString()
+                  << std::endl;
+        mMissedCalls->addMissedCall(request.callername(), QTime::currentTime());
         stream->Write(response);
         return Status::CANCELLED;
     }
     LOG(plog::info) << "[Call][ServerSide]: ClientStates::IncomingCall:";
 
-    stream->Read(&request);
-    mClientState->setState(QMLClientState::ClientStates::IncomingCall);
-    mClientState->setCallerName(QString::fromStdString(request.callername()));
+    QMLClientState::getInstance().setState(QMLClientState::ClientStates::IncomingCall);
+    QMLClientState::getInstance().setCallerName(QString::fromStdString(request.callername()));
     if(raceIncomingCall(*context)){
         response.set_issuccessful(true);
         stream->Write(response);
         mIsInConversation = true;
         LOG(plog::info) << "[Call][ServerSide]: QMLClientState::ClientStates::InConversation:";
-        mClientState->setState(QMLClientState::ClientStates::InConversation);
+        QMLClientState::getInstance().setState(QMLClientState::ClientStates::InConversation);
         std::thread tRead([this, stream, &context](){
             serverReadVoiceThread(stream, *context);
         });
@@ -127,7 +136,7 @@ grpc::Status secure_voice_call::PeerToPeer::HandShake(grpc::ServerContext *conte
         stream->Write(response);
     }
     mIsInConversation = false;
-    mClientState->setState(QMLClientState::ClientStates::Online);
+    QMLClientState::getInstance().setState(QMLClientState::ClientStates::Online);
     return Status::OK;
 }
 
@@ -136,7 +145,10 @@ void secure_voice_call::PeerToPeer::clientReadVoiceThread(grpc::ClientContext& c
     CallResponse response;
     mAudioModule->startPlayingAudio();
     LOG(plog::info) << "[Call][ClientSide][Audio]startPlayingAudio";
-    while (mClientStream->Read(&response) && mIsInConversation) {
+    while (mIsInConversation
+           && QMLClientState::getInstance().getState() == QMLClientState::ClientStates::InConversation
+           && mClientStream->Read(&response))
+    {
         mAudioModule->readVoice(response);
     }
     mAudioModule->stopPlayingAudio();
@@ -153,7 +165,9 @@ void secure_voice_call::PeerToPeer::clientWriteVoiceThread(grpc::ClientContext& 
     mAudioModule->startRecordingAudio();
     LOG(plog::info) << "[Call][ClientSide][Audio]startRecordingAudio";
     CallRequest request;
-    while(mIsInConversation){
+    while(mIsInConversation
+          && QMLClientState::getInstance().getState() == QMLClientState::ClientStates::InConversation)
+    {
         if(mAudioModule->writeVoice(request)){
             if(!mClientStream->Write(request)){
                  LOG(plog::warning) << "[Call][ClientSide][Audio]There is no connection";
@@ -178,7 +192,10 @@ void secure_voice_call::PeerToPeer::serverReadVoiceThread(ServerReaderWriter<Cal
     CallRequest request;
     mAudioModule->startPlayingAudio();
      LOG(plog::info) << "[Call][ServerSide][Audio]startPlayingAudio";
-    while (stream->Read(&request) && mIsInConversation) {
+    while (mIsInConversation
+           && QMLClientState::getInstance().getState() == QMLClientState::ClientStates::InConversation
+           && stream->Read(&request))
+    {
           mAudioModule->readVoice(request);
     }
     mAudioModule->stopPlayingAudio();
@@ -194,7 +211,9 @@ void secure_voice_call::PeerToPeer::serverWriteVoiceThread(ServerReaderWriter<Ca
     CallResponse response;
     mAudioModule->startRecordingAudio();
     LOG(plog::info) << "[Call][ServerSide][Audio]startRecordingAudio";
-    while(mIsInConversation){
+    while(mIsInConversation
+          && QMLClientState::getInstance().getState() == QMLClientState::ClientStates::InConversation)
+    {
         if(mAudioModule->writeVoice(response)){
             if(!stream->Write(response)){
                 LOG(plog::warning) << "[Call][ServerSide][Audio]There is no connection";
@@ -233,7 +252,7 @@ bool secure_voice_call::PeerToPeer::raceOutgoingCall(secure_voice_call::CallResp
     //[timer]-----------------------------------------------------------------------------
     QEventLoop loop;
     std::shared_ptr<QMetaObject::Connection> sh(new QMetaObject::Connection(),
-                                           [](QMetaObject::Connection *ptr){
+                                           [this](QMetaObject::Connection *ptr){
         QObject::disconnect(*ptr);
         delete ptr;
     });
@@ -301,7 +320,7 @@ bool secure_voice_call::PeerToPeer::raceIncomingCall(ServerContext& context)
     });
     //[ClientSideCanceled connection]-----------------------------------------------------
     std::shared_ptr<QMetaObject::Connection> sh(new QMetaObject::Connection(),
-                                           [](QMetaObject::Connection *ptr){
+                                           [this](QMetaObject::Connection *ptr){
         QObject::disconnect(*ptr);
         delete ptr;
     });
