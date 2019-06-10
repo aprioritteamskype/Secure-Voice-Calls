@@ -69,8 +69,6 @@ void Player::runPlayer()
 void Player::stopPlayer()
 {
     mAudiOutput.get()->stop();
-    mBufReadyToRead = 0;
-    mBufReadPos = 0;
 }
 
 qint64 Player::readData(char *data, qint64 len)

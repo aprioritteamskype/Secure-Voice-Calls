@@ -47,7 +47,7 @@ bool Recorder::getDataFromBuff(char *data, quint64 bytes)
 qint64 Recorder::writeData(const char *data, qint64 len)
 {
     qint64 total=0;
-    while (len > total && mBufWritePos-mBufSendPos <= mBuffSize)
+    while (len > total)
     {
         memcpy(&pBuff[mBufWritePos%mBuffSize],&data[total], RECORDING_BYTES); //write 2Bytes into circular buffer
         mBufWritePos+=RECORDING_BYTES; //next 16bit buffer location
@@ -65,8 +65,6 @@ void Recorder::runRecorder()
 void Recorder::stopRecorder()
 {
     mAudioInput.get()->stop();
-    mBufSendPos = 0;
-    mBufWritePos = 0;
 }
 
 qint64 Recorder::readData(char *data, qint64 len)
