@@ -69,7 +69,6 @@ void Player::runPlayer()
 void Player::stopPlayer()
 {
     mAudiOutput.get()->stop();
-    mAudiOutput.release();
 }
 
 qint64 Player::readData(char *data, qint64 len)

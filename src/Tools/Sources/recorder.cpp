@@ -65,8 +65,6 @@ void Recorder::runRecorder()
 void Recorder::stopRecorder()
 {
     mAudioInput.get()->stop();
-    mAudioInput.release();
-
 }
 
 qint64 Recorder::readData(char *data, qint64 len)

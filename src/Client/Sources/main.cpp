@@ -2,6 +2,9 @@
 #include <QQmlApplicationEngine>
 #include <thread>
 #include <QQmlContext>
+#include <QDir>
+#include <plog/Log.h>
+#include <plog/Appenders/ConsoleAppender.h>
 
 #include "client.h"
 #include "qmlclientstate.h"
@@ -9,6 +12,8 @@
 #include "qmlmissedcallsmodel.h"
 #include "peertopeer.h"
 #include "commandArgsParser.h"
+#define LOG_DIR_PASS  "Logs"
+#define LOG_PASS  "Logs/ClientLog2.txt"
 
 int main(int argc, char *argv[])
 {
@@ -18,11 +23,17 @@ int main(int argc, char *argv[])
     qRegisterMetaType<secure_voice_call::QMLClientState::ClientStates>("ClientStates");
     qRegisterMetaType<secure_voice_call::PeerToPeer::OutgoingCallStates>("OutgoingCallStates");
 
+    if(!QDir().exists(LOG_DIR_PASS)){
+        QDir().mkdir(LOG_DIR_PASS);
+    }
+    static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
+    plog::init(plog::info,LOG_PASS).addAppender(&consoleAppender);
+
     secure_voice_call::CommandArgsParser parser(argc, argv);
-    std::cout << "parser.serverIp() " << parser.serverIp() << std::endl;
-    std::cout << "parser.serverPort() " << parser.serverPort() << std::endl;
-    std::cout << "parser.peerToPeerClientSidePort() " << parser.peerToPeerClientSidePort() << std::endl;
-    std::cout << "parser.peerToPeerServerSidePort() " << parser.peerToPeerServerSidePort() << std::endl;
+    LOG(plog::info) << "[CommandArgsParser]parser.serverIp() " << parser.serverIp();
+    LOG(plog::info) << "[CommandArgsParser]parser.serverPort() " << parser.serverPort();
+    LOG(plog::info) << "[CommandArgsParser]parser.peerToPeerClientSidePort() " << parser.peerToPeerClientSidePort();
+    LOG(plog::info) << "[CommandArgsParser]parser.peerToPeerServerSidePort() " << parser.peerToPeerServerSidePort();
     secure_voice_call::QMLClientsOnlineModel *model = new secure_voice_call::QMLClientsOnlineModel();
     secure_voice_call::QMLMissedCallsModel *missedCallsModel = new secure_voice_call::QMLMissedCallsModel();
     secure_voice_call::Client *client = new secure_voice_call::Client(model,
